@@ -1,0 +1,40 @@
+<div class="erp-layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h3>ERP Institucional</h3>
+    </div>
+    <nav class="sidebar-menu">
+      <ul>
+        <li routerLinkActive="active">
+          <a routerLink="/dashboard"><i class="icon">📊</i> Dashboard</a></li>
+        <li routerLinkActive="active">
+          <a routerLink="/users"><i class="icon">👥</i> Usuarios</a></li>
+        <li routerLinkActive="active">
+          <a routerLink="/matriculas"><i class="icon">📝</i> Matrículas</a></li>
+        <li routerLinkActive="active">
+          <a routerLink="/settings"><i class="icon">⚙️</i> Configuración</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <div class="main-container">
+    
+    <header class="header">
+      <div class="header-title">
+        <span>Bienvenido</span>
+      </div>
+      <div class="header-user">
+        <span class="username">{{ usuarioLogueado }}</span>
+        <button (click)="logout()" class="btn-logout">Cerrar Sesión</button>
+      </div>
+    </header>
+
+    <main class="content">
+        
+      <router-outlet></router-outlet>
+      
+    </main>
+
+  </div>
+</div>

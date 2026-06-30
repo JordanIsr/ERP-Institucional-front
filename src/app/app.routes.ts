@@ -2,9 +2,11 @@ import { Routes } from '@angular/router';
 import { Login } from './pages/login/login';
 import { Dashboard } from './pages/dashboard/dashboard';
 import { Register } from './pages/register/register';
+import { Layout } from './pages/layout/layout';
 import { authGuard } from './core/guards/auth.guard';
 import { Users } from './pages/users/users';
 import { Settings } from './pages/settings/settings';
+import { Matriculas } from './pages/matriculas/matriculas';
 
 export const routes: Routes = [
   // 1. Redirigir la ruta raíz por defecto al login (o al dashboard, si el guard lo permite)
@@ -15,6 +17,8 @@ export const routes: Routes = [
 
   // 3. Ruta protegida (El 'Home' de tu ERP)
   {path: 'register', component: Register},
+
+  {path: '', component: Layout,children: [
 
   { 
     path: 'dashboard', 
@@ -30,6 +34,15 @@ export const routes: Routes = [
   {
     path: 'settings',
     component: Settings
+  },
+
+  {
+    path: 'matriculas',
+    component: Matriculas
   }
+
+  ]
+
+ }
 
 ];
