@@ -1,0 +1,45 @@
+<div class="horarios-container">
+  <h2>📅 Gestión de Horarios Institucionales</h2>
+  <p>Consulta y asignación de bloques horarios para el periodo actual.</p>
+
+  <div class="filters-panel">
+    <div class="filter-group">
+      <label for="nivel">Nivel/Curso:</label>
+      <select id="nivel">
+        <option>Primer Semestre - A</option>
+        <option>Segundo Semestre - A</option>
+        <option>Tercer Semestre - A</option>
+      </select>
+    </div>
+    <button class="btn-primary">➕ Agregar Bloque</button>
+  </div>
+
+  <div class="table-responsive">
+    <table class="horarios-table">
+      <thead>
+        <tr>
+          <th>Hora</th>
+          <th>Lunes</th>
+          <th>Martes</th>
+          <th>Miércoles</th>
+          <th>Jueves</th>
+          <th>Viernes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tbody>
+        @for (bloque of listaHorarios; track bloque.horaInicio) {
+          <tr>
+            <td class="hora-col"><strong>{{ bloque.horaInicio }} - {{ bloque.horaFin }}</strong></td>
+            <td [class.asignado]="bloque.lunes">{{ bloque.lunes || '-' }}</td>
+            <td [class.asignado]="bloque.martes">{{ bloque.martes || '-' }}</td>
+            <td [class.asignado]="bloque.miercoles">{{ bloque.miercoles || '-' }}</td>
+            <td [class.asignado]="bloque.jueves">{{ bloque.jueves || '-' }}</td>
+            <td [class.asignado]="bloque.viernes">{{ bloque.viernes || '-' }}</td>
+          </tr>
+        }
+      </tbody>
+    
+    </table>
+  </div>
+</div>

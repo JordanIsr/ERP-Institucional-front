@@ -7,6 +7,7 @@ import { authGuard } from './core/guards/auth.guard';
 import { Users } from './pages/users/users';
 import { Settings } from './pages/settings/settings';
 import { Matriculas } from './pages/matriculas/matriculas';
+import { Horarios } from './pages/horarios/horarios';
 
 export const routes: Routes = [
   // 1. Redirigir la ruta raíz por defecto al login (o al dashboard, si el guard lo permite)
@@ -39,6 +40,11 @@ export const routes: Routes = [
   {
     path: 'matriculas',
     component: Matriculas
+  },
+
+   {
+    path: 'horarios',
+    component: Horarios
   }
 
   ]
