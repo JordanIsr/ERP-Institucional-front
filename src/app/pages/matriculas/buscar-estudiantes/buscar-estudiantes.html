@@ -1,0 +1,113 @@
+<div class="buscar-container">
+  <div class="buscar-header">
+    <h2>Buscar Estudiantes</h2>
+    <p>Busca por cédula, nombres, apellidos o correo electrónico</p>
+  </div>
+
+  <div class="search-bar">
+    <input
+      type="text"
+      [(ngModel)]="terminoBusqueda"
+      (keyup.enter)="buscar()"
+      placeholder="Ej. 1754373825, Jordan, jis.iza@...">
+    <button type="button" class="btn-buscar" (click)="buscar()">Buscar</button>
+  </div>
+
+  <div class="resultados-panel" *ngIf="resultados.length > 0">
+    <h3>Resultados ({{ resultados.length }})</h3>
+
+    <div
+      class="resultado-item"
+      *ngFor="let est of resultados"
+      [class.seleccionado]="estudianteSeleccionado?.id === est.id"
+      (click)="seleccionar(est)">
+      <div class="resultado-info">
+        <strong>{{ est.nombres }} {{ est.apellidos }}</strong>
+        <span>{{ est.cedula }} · {{ est.correo }}</span>
+      </div>
+      <span class="badge-estado" [ngClass]="est.estado?.toLowerCase()">{{ est.estado }}</span>
+    </div>
+  </div>
+
+  <div class="resultados-panel" *ngIf="terminoBusqueda && resultados.length === 0">
+    <div class="sin-resultados">No se encontraron estudiantes con ese criterio.</div>
+  </div>
+
+  <div class="detalle-panel" *ngIf="estudianteSeleccionado">
+    <h3>Detalle del Estudiante</h3>
+
+    <div class="detalle-grid">
+      <div class="detalle-group">
+        <label>Cédula</label>
+        <input type="text" [(ngModel)]="estudianteSeleccionado.cedula" [disabled]="!modoEdicion">
+      </div>
+      <div class="detalle-group">
+        <label>Nombres</label>
+        <input type="text" [(ngModel)]="estudianteSeleccionado.nombres" [disabled]="!modoEdicion">
+      </div>
+      <div class="detalle-group">
+        <label>Apellidos</label>
+        <input type="text" [(ngModel)]="estudianteSeleccionado.apellidos" [disabled]="!modoEdicion">
+      </div>
+      <div class="detalle-group">
+        <label>Correo Electrónico</label>
+        <input type="text" [(ngModel)]="estudianteSeleccionado.correo" [disabled]="!modoEdicion">
+      </div>
+      <div class="detalle-group full-width">
+        <label>Teléfono</label>
+        <input type="text" [(ngModel)]="estudianteSeleccionado.telefono" [disabled]="!modoEdicion">
+      </div>
+    </div>
+
+    <div class="detalle-grid tri-grid">
+      <div class="detalle-group">
+        <label>Carrera</label>
+        <select [(ngModel)]="estudianteSeleccionado.carrera" [disabled]="!modoEdicion">
+          <option value="Sistemas">Sistemas</option>
+          <option value="Contabilidad">Contabilidad</option>
+          <option value="Administración">Administración</option>
+        </select>
+      </div>
+      <div class="detalle-group">
+        <label>Periodo</label>
+        <select [(ngModel)]="estudianteSeleccionado.periodo" [disabled]="!modoEdicion">
+          <option value="Primero">Primer Semestre</option>
+          <option value="Segundo">Segundo Semestre</option>
+          <option value="Tercero">Tercer Semestre</option>
+          <option value="Cuarto">Cuarto Semestre</option>
+          <option value="Quinto">Quinto Semestre</option>
+          <option value="Titulacion">Titulación</option>
+        </select>
+      </div>
+      <div class="detalle-group">
+        <label>Jornada</label>
+        <select [(ngModel)]="estudianteSeleccionado.jornada" [disabled]="!modoEdicion">
+          <option value="Matutina">Matutina</option>
+          <option value="Vespertina">Vespertina</option>
+          <option value="Nocturna">Nocturna</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="detalle-group full-width" style="margin-bottom: 20px;">
+      <label>Estado de la Matrícula</label>
+      <select [(ngModel)]="estudianteSeleccionado.estado" [disabled]="!modoEdicion" class="status-select">
+        <option value="APROBADA">APROBADA</option>
+        <option value="PENDIENTE">PENDIENTE</option>
+        <option value="ANULADA">ANULADA</option>
+      </select>
+    </div>
+
+    <div class="detalle-actions">
+      <button *ngIf="!modoEdicion" type="button" class="btn btn-editar" (click)="activarEdicion()">
+        Habilitar Edición
+      </button>
+      <button *ngIf="modoEdicion" type="button" class="btn btn-guardar" (click)="guardarActualizacion()">
+        Guardar Cambios
+      </button>
+      <button type="button" class="btn btn-anular" (click)="anular()">
+        Anular Matrícula
+      </button>
+    </div>
+  </div>
+</div>

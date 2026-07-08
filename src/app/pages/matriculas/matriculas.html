@@ -1,138 +1,121 @@
-<div class="page">
+<div class="matriculas-container">
+  <div class="matriculas-header">
+    <h2>Módulo de Matrículas</h2>
+    <p>Registro y gestión de matrículas estudiantiles</p>
+  </div>
 
-    <div class="matricula-box">
-
-        <div class="header-box">
-            <h2>Módulo de Matrículas</h2>
-            <p>Registro y gestión de matrículas estudiantiles</p>
+  <form [formGroup]="matriculaForm" (ngSubmit)="registrar()" class="matriculas-form">
+    
+    <div class="form-section">
+      <h3><i class="icon-user"></i> Información Personal</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Cédula 
+            <span [class.texto-rojo]="matriculaForm.get('cedula')?.invalid && matriculaForm.get('cedula')?.touched">*</span>
+          </label>
+          <input type="text" formControlName="cedula" 
+         [class.borde-rojo]="matriculaForm.get('cedula')?.invalid && matriculaForm.get('cedula')?.touched" 
+          placeholder="Ej. 1726354789">
         </div>
-
-        <form>
-
-            <div class="section-box">
-
-                <h3>Información Personal</h3>
-
-                <div class="form-grid">
-
-                    <div class="input-box">
-                        <label>Cédula</label>
-                        <input type="text">
-                    </div>
-
-                    <div class="input-box">
-                        <label>Nombres</label>
-                        <input type="text">
-                    </div>
-
-                    <div class="input-box">
-                        <label>Apellidos</label>
-                        <input type="text">
-                    </div>
-
-                    <div class="input-box">
-                        <label>Correo</label>
-                        <input type="email">
-                    </div>
-
-                    <div class="input-box">
-                        <label>Teléfono</label>
-                        <input type="text">
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="section-box">
-
-                <h3>Información Académica</h3>
-
-                <div class="form-grid">
-
-                    <div class="input-box">
-                        <label>Carrera</label>
-                        <select>
-                            <option>Sistemas</option>
-                            <option>Administración</option>
-                            <option>Contabilidad</option>
-                        </select>
-                    </div>
-
-                    <div class="input-box">
-                        <label>Periodo</label>
-                        <input type="text">
-                    </div>
-
-                    <div class="input-box">
-                        <label>Jornada</label>
-                        <select>
-                            <option>Matutina</option>
-                            <option>Vespertina</option>
-                            <option>Nocturna</option>
-                        </select>
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="section-box">
-
-                <h3>Documentos</h3>
-
-                <div class="upload-grid">
-
-                    <div class="upload-box">
-                        <label>Fotografía del estudiante</label>
-                        <input type="file" accept="image/*">
-                    </div>
-
-                    <div class="upload-box">
-                        <label>Certificado de no adeudar</label>
-                        <input type="file" accept=".pdf">
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="section-box">
-
-                <h3>Estado</h3>
-
-                <div class="input-box">
-                    <select>
-                        <option>PENDIENTE</option>
-                        <option>APROBADA</option>
-                        <option>ANULADA</option>
-                    </select>
-                </div>
-
-            </div>
-
-            <div class="buttons">
-
-                <button type="button">
-                    Registrar
-                </button>
-
-                <button type="button">
-                    Actualizar
-                </button>
-
-                <button type="button">
-                    Anular
-                </button>
-
-                <button type="button">
-                    Buscar
-                </button>
-
-            </div>
-
-        </form>
-
+        <div class="form-group">
+          <label>Nombres 
+            <span [class.texto-rojo]="matriculaForm.get('nombres')?.invalid && matriculaForm.get('nombres')?.touched">*</span>
+          </label>
+          <input type="text" formControlName="nombres" 
+          [class.borde-rojo]="matriculaForm.get('nombres')?.invalid && matriculaForm.get('nombres')?.touched" 
+          placeholder="Nombres completos">
+        </div>
+        <div class="form-group">
+          <label>Apellidos
+           <span [class.texto-rojo]="matriculaForm.get('apellidos')?.invalid && matriculaForm.get('apellidos')?.touched">*</span>
+          </label>
+          <input type="text" formControlName="apellidos" 
+          [class.borde-rojo]="matriculaForm.get('apellidos')?.invalid && matriculaForm.get('apellidos')?.touched" 
+          placeholder="Apellidos completos">
+        </div>
+        <div class="form-group">
+          <label>Correo Electrónico
+           <span [class.texto-rojo]="matriculaForm.get('correo')?.invalid && matriculaForm.get('correo')?.touched">*</span>
+          </label>
+          <input type="text" formControlName="correo" 
+          [class.borde-rojo]="matriculaForm.get('correo')?.invalid && matriculaForm.get('correo')?.touched" 
+          placeholder="@ejemplo.com">
+        </div>
+        <div class="form-group full-width">
+          <label>Teléfono
+            <span [class.texto-rojo]="matriculaForm.get('telefono')?.invalid && matriculaForm.get('telefono')?.touched">*</span>
+          </label>
+          <input type="text" formControlName="telefono" 
+          [class.borde-rojo]="matriculaForm.get('telefono')?.invalid && matriculaForm.get('telefono')?.touched" 
+          placeholder="0987654321">
+        </div>
+      </div>
     </div>
 
+    <div class="form-section">
+      <h3><i class="icon-book"></i> Información Académica</h3>
+      <div class="form-grid tri-grid">
+        <div class="form-group">
+          <label>Carrera *</label>
+          <select formControlName="carrera">
+            <option value="Sistemas">Sistemas</option>
+            <option value="Contabilidad">Contabilidad</option>
+            <option value="Administración">Administración</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Periodo *</label>
+          <select formControlName="periodo">
+            <option value="Primero">Primer Semestre</option>
+            <option value="Segundo">Segundo Semestre</option>
+            <option value="Tercero">Tercer Semestre</option>
+            <option value="Cuarto">Cuarto Semestre</option>
+            <option value="Quinto">Quinto Semestre</option>
+            <option value="Titulacion">Titulación</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Jornada *</label>
+          <select formControlName="jornada">
+            <option value="Matutina">Matutina</option>
+            <option value="Vespertina">Vespertina</option>
+            <option value="Nocturna">Nocturna</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3><i class="icon-folder"></i> Documentos y Validación</h3>
+      <div class="form-grid">
+        <div class="form-group file-group">
+          <label>Fotografía del estudiante</label>
+          <div class="file-custom">
+            <input type="file" (change)="null">
+            <span>Seleccionar archivo...</span>
+          </div>
+        </div>
+        <div class="form-group file-group">
+          <label>Certificado de no adeudar</label>
+          <div class="file-custom">
+            <input type="file" (change)="null">
+            <span>Seleccionar archivo...</span>
+          </div>
+        </div>
+        <div class="form-group full-width">
+          <label>Estado de la Matrícula</label>
+          <select formControlName="estado" class="status-select">
+            <option value="APROBADA">APROBADA</option>
+            <option value="PENDIENTE">PENDIENTE</option>
+            <option value="ANULADA">ANULADA</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button type="submit" class="btn btn-primary">Registrar</button>
+    </div>
+
+  </form>
 </div>

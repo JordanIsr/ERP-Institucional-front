@@ -3,16 +3,22 @@ import { CanActivateFn, Router } from '@angular/router';
 
 export const authGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
-  
-  // Revisamos si el JWT existe en el almacenamiento local
-  const token = localStorage.getItem('auth_token');
 
-  if (token) {
-    // Si hay token, permitimos el paso a la ruta protegida
-    return true;
-  } else {
-    // Si no hay token, lo mandamos directo al login
+  const token = localStorage.getItem('auth_token');
+  if (!token) {
     router.navigate(['/login']);
     return false;
   }
+
+  // Roles permitidos para esta ruta (definidos en app.routes.ts con "data: { roles: [...] }")
+  const rolesPermitidos: string[] = route.data['roles'];
+  const rolUsuario = localStorage.getItem('user_role');
+
+  if (rolesPermitidos && !rolesPermitidos.includes(rolUsuario ?? '')) {
+    // El usuario está autenticado pero no tiene el rol necesario
+    router.navigate(['/dashboard']); // lo mandamos a una página segura, no al login
+    return false;
+  }
+
+  return true;
 };

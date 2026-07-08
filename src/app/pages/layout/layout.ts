@@ -1,20 +1,41 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterOutlet, RouterLink, RouterLinkActive], // Importamos las herramientas de ruteo
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './layout.html',
-  styleUrls: ['./layout.scss'] // (Copia aquí tu CSS del layout si lo tenías en app.scss)
+  styleUrls: ['./layout.scss']
 })
 export class Layout {
-  usuarioLogueado: string = 'Administrador'; 
+  usuarioLogueado: string = localStorage.getItem('user_nombre') ?? 'Usuario';
+  rolUsuario: string = localStorage.getItem('user_role') ?? '';
+  matriculasAbierto = false;
 
   constructor(private router: Router) {}
 
+  esAdmin(): boolean {
+    return this.rolUsuario === 'admin';
+  }
+
+  esAdminOSecretaria(): boolean {
+    return this.rolUsuario === 'admin' || this.rolUsuario === 'secretaria';
+  }
+
+  esAdminOSecretariaOEstudiante(): boolean {
+    return this.rolUsuario === 'admin' || this.rolUsuario === 'secretaria' || this.rolUsuario === 'estudiante';
+  }
+
+  toggleMatriculas() {
+    this.matriculasAbierto = !this.matriculasAbierto;
+  }
+
   logout() {
-    localStorage.removeItem('token'); 
-    this.router.navigate(['/login']); 
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_role');
+    localStorage.removeItem('user_nombre');
+    this.router.navigate(['/login']);
   }
 }
