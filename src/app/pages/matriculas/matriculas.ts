@@ -27,34 +27,34 @@ export class Matriculas {
     jornada: ['Matutina', [Validators.required]],
     
     // 2. Les quitamos el required por ahora para que te deje guardar los datos de texto:
-    fotografia: [''], 
-    certificado: [''],
     estado: ['APROBADA']
   });
 
   registrar() {
-    // 🔍 DETECTOR DE ERRORES: Imprime en la consola qué campo está fallando
-    Object.keys(this.matriculaForm.controls).forEach(key => {
-      const controlErrors = this.matriculaForm.get(key)?.errors;
-      if (controlErrors != null) {
-        console.log(`❌ El campo [${key}] es inválido debido a:`, controlErrors);
+  Object.keys(this.matriculaForm.controls).forEach(key => {
+    const controlErrors = this.matriculaForm.get(key)?.errors;
+    if (controlErrors != null) {
+      console.log(`❌ El campo [${key}] es inválido debido a:`, controlErrors);
+    }
+  });
+
+  if (this.matriculaForm.valid) {
+    this.estudiantesService.matricularEstudiante(this.matriculaForm.value).subscribe({
+      next: (res: any) => {
+        alert(
+          '¡Estudiante matriculado con éxito! 🎉\n\n' +
+          'Indícale que debe registrarse por su cuenta en el sistema usando su cédula y su correo institucional.'
+        );
+        this.matriculaForm.reset({ carrera: 'Sistemas', jornada: 'Matutina', estado: 'APROBADA' });
+      },
+      error: (err: any) => {
+        alert('Error al guardar en el servidor.');
+        console.error(err);
       }
     });
-
-    if (this.matriculaForm.valid) {
-      this.estudiantesService.matricularEstudiante(this.matriculaForm.value).subscribe({
-        next: (res: any) => { 
-          alert('¡Estudiante guardado con éxito en la Base de Datos! 🎉');
-          this.matriculaForm.reset({ carrera: 'Sistemas', jornada: 'Matutina', estado: 'APROBADA' });
-        },
-        error: (err: any) => { 
-          alert('Error al guardar en el servidor.');
-          console.error(err);
-        }
-      });
-    } else {
-      alert('Por favor, completa todos los campos requeridos.');
-      this.matriculaForm.markAllAsTouched(); 
-    }
-  } 
+  } else {
+    alert('Por favor, completa todos los campos requeridos.');
+    this.matriculaForm.markAllAsTouched();
+  }
+}
 }

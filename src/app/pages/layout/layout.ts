@@ -20,6 +20,18 @@ export class Layout {
     return this.rolUsuario === 'admin';
   }
 
+  esAdminOSecretariaOEstudianteOUsuario(): boolean {
+    return this.rolUsuario === 'admin' || this.rolUsuario === 'secretaria' || this.rolUsuario === 'estudiante' || this.rolUsuario === 'usuario';
+  }
+
+   esSecretaria(): boolean {
+    return this.rolUsuario === 'secretaria';
+  }
+
+   esSecretariaODocenteOEstudiante(): boolean {
+    return this.rolUsuario === 'secretaria' || this.rolUsuario === 'docente' || this.rolUsuario === 'estudiante' ;
+  }
+
   esAdminOSecretaria(): boolean {
     return this.rolUsuario === 'admin' || this.rolUsuario === 'secretaria';
   }

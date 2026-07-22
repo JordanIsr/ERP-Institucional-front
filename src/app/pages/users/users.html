@@ -1,4 +1,47 @@
-<div class="module-container">
-  <h1>Gestión de Usuarios</h1>
-  <p>Aquí irá la tabla con la lista de usuarios...</p>
+<div class="users-container">
+  <div class="users-header">
+    <h2>Gestión de Usuarios</h2>
+    <p>Asigna roles al personal registrado en el sistema</p>
+  </div>
+
+  <div class="estado-carga" *ngIf="cargando">Cargando usuarios...</div>
+
+  <div class="tabla-panel" *ngIf="!cargando">
+    <div class="sin-datos" *ngIf="usuarios.length === 0">
+      No hay usuarios registrados todavía.
+    </div>
+
+    <table class="tabla-usuarios" *ngIf="usuarios.length > 0">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Correo</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let usuario of usuarios">
+          <td>{{ usuario.nombre }}</td>
+          <td>{{ usuario.email }}</td>
+          <td>
+            <select [(ngModel)]="usuario.role" (change)="cambiarRol(usuario)" [disabled]="guardandoId === usuario.id">
+              <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+            </select>
+          </td>
+          <td>
+            <span class="badge-estado" [ngClass]="usuario.isActive ? 'activo' : 'inactivo'">
+              {{ usuario.isActive ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td>
+            <button class="btn btn-desactivar" (click)="desactivar(usuario)" *ngIf="usuario.isActive">
+              Desactivar
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>

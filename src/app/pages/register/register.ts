@@ -22,14 +22,14 @@ export class Register {
 
   constructor() {
     this.registerForm = this.fb.group({
+      cedula: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
       nombre: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]]
-    }, { validators: this.passwordsMatchValidator }); // Agregamos validador personalizado
+    }, { validators: this.passwordsMatchValidator });
   }
 
-  // Validador personalizado para confirmar que las contraseñas sean iguales
   passwordsMatchValidator(control: AbstractControl) {
     const password = control.get('password')?.value;
     const confirmPassword = control.get('confirmPassword')?.value;
@@ -46,13 +46,11 @@ export class Register {
       this.isLoading = true;
       this.errorMessage = '';
 
-      // Extraemos los datos, omitiendo el confirmPassword que no le interesa al backend
       const { confirmPassword, ...userData } = this.registerForm.value;
 
       this.authService.register(userData).subscribe({
         next: () => {
           this.isLoading = false;
-          // Si el registro es exitoso, lo enviamos al login para que inicie sesión
           this.router.navigate(['/login']);
         },
         error: (err) => {

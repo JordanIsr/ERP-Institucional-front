@@ -109,5 +109,25 @@
         Anular Matrícula
       </button>
     </div>
+
+    <div class="bloqueo-panel" *ngIf="bloqueoMatricula">
+  <div class="bloqueo-aviso">
+    ⚠️ {{ mensajeBloqueo }}
+  </div>
+
+  <div class="bloqueo-subida" *ngIf="!comprobanteSubido">
+    <label>Adjuntar comprobante de pago (PDF, JPG o PNG, máx. 5MB)</label>
+    <input type="file" accept=".pdf,.jpg,.jpeg,.png" (change)="seleccionarArchivo($event)">
+    <button class="btn btn-subir" (click)="subirComprobante()" [disabled]="subiendoComprobante || !archivoSeleccionado">
+      {{ subiendoComprobante ? 'Subiendo...' : 'Subir Comprobante' }}
+    </button>
+  </div>
+
+  <div class="bloqueo-exito" *ngIf="comprobanteSubido">
+    ✅ Comprobante subido correctamente. Está <strong>pendiente de aprobación por un administrador</strong>.
+    Una vez aprobado, podrás completar la matrícula.
+  </div>
+</div>
+
   </div>
 </div>

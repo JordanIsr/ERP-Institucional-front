@@ -8,6 +8,15 @@
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
       
       <div class="form-group">
+  <label for="cedula">Cédula</label>
+  <input id="cedula" type="text" formControlName="cedula" placeholder="Ej. 1754373825"
+    [class.is-invalid]="registerForm.get('cedula')?.invalid && registerForm.get('cedula')?.touched">
+  <div class="error-message" *ngIf="registerForm.get('cedula')?.invalid && registerForm.get('cedula')?.touched">
+    <span>Ingrese una cédula válida (10 dígitos).</span>
+  </div>
+</div>
+
+      <div class="form-group">
         <label for="nombre">Nombre Completo</label>
         <input id="nombre" type="text" formControlName="nombre" placeholder="Ej. Juan Pérez"
           [class.is-invalid]="registerForm.get('nombre')?.invalid && registerForm.get('nombre')?.touched">

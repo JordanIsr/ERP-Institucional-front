@@ -253,3 +253,55 @@
     }
   }
 }
+
+.bloqueo-panel {
+  margin-top: 16px;
+  padding: 18px;
+  border-radius: 10px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+
+  .bloqueo-aviso {
+    color: #92400e;
+    font-size: 13.5px;
+    line-height: 1.5;
+    margin-bottom: 14px;
+  }
+
+  .bloqueo-subida {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #7c2d12;
+    }
+
+    input[type="file"] {
+      font-size: 13px;
+    }
+
+    .btn-subir {
+      align-self: flex-start;
+      background: #7c3aed;
+      color: #fff;
+      border: none;
+      padding: 9px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+
+      &:hover:not(:disabled) { background: #6d28d9; }
+      &:disabled { opacity: 0.6; cursor: not-allowed; }
+    }
+  }
+
+  .bloqueo-exito {
+    color: #166534;
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+}

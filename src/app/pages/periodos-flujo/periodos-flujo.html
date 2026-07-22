@@ -1,0 +1,214 @@
+<div class="flujo-container">
+
+  <!-- BREADCRUMB -->
+  <div class="breadcrumb">
+    <span class="crumb" (click)="irAPeriodos()">📅 Periodos</span>
+    <ng-container *ngIf="periodoSeleccionado">
+      <span class="separador">›</span>
+      <span class="crumb" (click)="irACarreras()">{{ periodoSeleccionado.nombre }}</span>
+    </ng-container>
+    <ng-container *ngIf="pcSeleccionado">
+      <span class="separador">›</span>
+      <span class="crumb" (click)="irAParalelos()">{{ pcSeleccionado.carrera.nombre }} ({{ pcSeleccionado.jornada }})</span>
+    </ng-container>
+    <ng-container *ngIf="paraleloSeleccionado">
+      <span class="separador">›</span>
+      <span class="crumb activo">Nivel {{ paraleloSeleccionado.nivel.numero }} - Paralelo {{ paraleloSeleccionado.nombre }}</span>
+    </ng-container>
+  </div>
+
+  <!-- ===================== VISTA 1: PERIODOS ===================== -->
+  <div *ngIf="vista === 'periodos'">
+    <div class="panel-header">
+      <h2>Periodos Académicos</h2>
+      <p class="descripcion">Crea aquí cada ciclo lectivo (ej. "2026-I"). Al hacer clic en un periodo, podrás habilitar las carreras que se ofrecerán durante ese ciclo.</p>
+    </div>
+
+    <div class="card">
+      <h3>Nuevo Periodo</h3>
+      <div class="fila-form">
+        <div class="campo">
+          <label>Nombre</label>
+          <input [(ngModel)]="nuevoPeriodo.nombre" placeholder="Ej. 2026-I">
+        </div>
+        <div class="campo">
+          <label>Fecha inicio</label>
+          <input type="date" [(ngModel)]="nuevoPeriodo.fechaInicio">
+        </div>
+        <div class="campo">
+          <label>Fecha fin</label>
+          <input type="date" [(ngModel)]="nuevoPeriodo.fechaFin">
+        </div>
+        <button class="btn btn-crear" (click)="crearPeriodo()">Crear Periodo</button>
+      </div>
+    </div>
+
+    <div class="lista-tarjetas">
+      <div class="sin-datos" *ngIf="periodos.length === 0">Aún no hay periodos creados.</div>
+
+      <div class="tarjeta" *ngFor="let p of periodos">
+        <ng-container *ngIf="editandoPeriodoId !== p.id; else editandoPeriodo">
+          <div class="tarjeta-info" (click)="abrirPeriodo(p)">
+            <strong>{{ p.nombre }}</strong>
+            <span>{{ p.fechaInicio }} → {{ p.fechaFin }}</span>
+          </div>
+          <span class="badge-estado" [ngClass]="p.estado?.toLowerCase()">{{ p.estado }}</span>
+          <div class="tarjeta-acciones">
+            <button class="btn-icono" (click)="activarEdicionPeriodo(p); $event.stopPropagation()">✏️</button>
+            <button class="btn-icono btn-eliminar" (click)="eliminarPeriodo(p); $event.stopPropagation()">🗑️</button>
+          </div>
+        </ng-container>
+
+        <ng-template #editandoPeriodo>
+          <div class="edicion-inline">
+            <input [(ngModel)]="periodoEdit.nombre" placeholder="Nombre">
+            <input type="date" [(ngModel)]="periodoEdit.fechaInicio">
+            <input type="date" [(ngModel)]="periodoEdit.fechaFin">
+            <select [(ngModel)]="periodoEdit.estado">
+              <option value="PLANIFICADO">PLANIFICADO</option>
+              <option value="ACTIVO">ACTIVO</option>
+              <option value="CERRADO">CERRADO</option>
+            </select>
+            <button class="btn btn-guardar" (click)="guardarEdicionPeriodo(p.id)">Guardar</button>
+            <button class="btn btn-cancelar" (click)="cancelarEdicionPeriodo()">Cancelar</button>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== VISTA 2: CARRERAS HABILITADAS ===================== -->
+  <div *ngIf="vista === 'carreras'">
+    <div class="panel-header">
+      <h2>Carreras habilitadas en {{ periodoSeleccionado.nombre }}</h2>
+      <p class="descripcion">Elige qué carreras se ofrecerán en este periodo y con qué malla curricular (solo puedes elegir mallas en estado ACTIVA). Luego haz clic en una carrera para abrir sus aulas.</p>
+    </div>
+
+    <div class="card">
+      <h3>Habilitar Carrera</h3>
+      <div class="fila-form">
+        <div class="campo">
+          <label>Carrera</label>
+          <select [(ngModel)]="nuevoPC.carreraId" (change)="onSeleccionCarreraParaHabilitar()">
+            <option value="">-- Selecciona --</option>
+            <option *ngFor="let c of carrerasCatalogo" [value]="c.id">{{ c.nombre }}</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label>Malla vigente</label>
+          <select [(ngModel)]="nuevoPC.versionMallaId">
+            <option value="">-- Selecciona --</option>
+            <option *ngFor="let m of mallasActivasDeCarrera" [value]="m.id">{{ m.nombre }}</option>
+          </select>
+          <span class="ayuda-campo" *ngIf="nuevoPC.carreraId && mallasActivasDeCarrera.length === 0">
+            ⚠️ Esta carrera no tiene ninguna malla ACTIVA. Créala primero en Catálogos → Mallas Curriculares.
+          </span>
+        </div>
+        <div class="campo">
+          <label>Jornada</label>
+          <select [(ngModel)]="nuevoPC.jornada">
+            <option value="MATUTINA">Matutina</option>
+            <option value="VESPERTINA">Vespertina</option>
+            <option value="NOCTURNA">Nocturna</option>
+          </select>
+        </div>
+        <button class="btn btn-crear" (click)="habilitarCarrera()">Habilitar</button>
+      </div>
+    </div>
+
+    <div class="lista-tarjetas">
+      <div class="sin-datos" *ngIf="periodoCarreraLista.length === 0">Todavía no hay carreras habilitadas en este periodo.</div>
+
+      <div class="tarjeta" *ngFor="let pc of periodoCarreraLista" (click)="abrirCarreraHabilitada(pc)">
+        <div class="tarjeta-info">
+          <strong>{{ pc.carrera.nombre }}</strong>
+          <span>{{ pc.versionMalla.nombre }} · {{ pc.jornada }}</span>
+        </div>
+        <span class="chip-flecha">Ver aulas →</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== VISTA 3: PARALELOS (AULAS) ===================== -->
+  <div *ngIf="vista === 'paralelos'">
+    <div class="panel-header">
+      <h2>Aulas de {{ pcSeleccionado.carrera.nombre }} — {{ pcSeleccionado.jornada }}</h2>
+      <p class="descripcion">Crea las secciones/paralelos de cada nivel (ej. Nivel 1 - Paralelo A). Luego haz clic en una para asignar sus asignaturas y docentes.</p>
+    </div>
+
+    <div class="card">
+      <h3>Nueva Aula</h3>
+      <div class="fila-form">
+        <div class="campo">
+          <label>Nivel</label>
+          <select [(ngModel)]="nuevoParalelo.nivelId">
+            <option value="">-- Selecciona --</option>
+            <option *ngFor="let n of nivelesDeLaMalla" [value]="n.id">Nivel {{ n.numero }}</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label>Nombre del aula</label>
+          <input [(ngModel)]="nuevoParalelo.nombre" placeholder="Ej. A">
+        </div>
+        <div class="campo">
+          <label>Cupo máximo</label>
+          <input type="number" [(ngModel)]="nuevoParalelo.cupoMaximo">
+        </div>
+        <button class="btn btn-crear" (click)="crearParalelo()">Crear Aula</button>
+      </div>
+    </div>
+
+    <div class="lista-tarjetas">
+      <div class="sin-datos" *ngIf="paralelos.length === 0">Aún no hay aulas creadas para esta carrera en este periodo.</div>
+
+      <div class="tarjeta" *ngFor="let p of paralelos" (click)="abrirParalelo(p)">
+        <div class="tarjeta-info">
+          <strong>Nivel {{ p.nivel.numero }} — Aula {{ p.nombre }}</strong>
+          <span>Cupo máximo: {{ p.cupoMaximo }}</span>
+        </div>
+        <span class="chip-flecha">Gestionar →</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== VISTA 4: AULA (asignaturas + docentes) ===================== -->
+  <div *ngIf="vista === 'aula'">
+    <div class="panel-header">
+      <h2>Nivel {{ paraleloSeleccionado.nivel.numero }} — Aula {{ paraleloSeleccionado.nombre }}</h2>
+      <p class="descripcion">Asigna un docente a cada asignatura de este nivel. Las asignaturas disponibles vienen automáticamente de la malla curricular vigente.</p>
+    </div>
+
+    <div class="card">
+      <h3>Asignar Asignatura + Docente</h3>
+      <div class="fila-form">
+        <div class="campo">
+          <label>Asignatura</label>
+          <select [(ngModel)]="nuevoAP.detalleMallaId">
+            <option value="">-- Selecciona --</option>
+            <option *ngFor="let d of detalleMallaDelNivel" [value]="d.id">{{ d.asignatura.nombre }}</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label>Docente</label>
+          <select [(ngModel)]="nuevoAP.docenteId">
+            <option value="">-- Selecciona --</option>
+            <option *ngFor="let doc of docentes" [value]="doc.id">{{ doc.nombres }} {{ doc.apellidos }}</option>
+          </select>
+        </div>
+        <button class="btn btn-crear" (click)="agregarAsignaturaAParalelo()">Asignar</button>
+      </div>
+    </div>
+
+    <div class="lista-tarjetas">
+      <div class="sin-datos" *ngIf="asignaturasParalelo.length === 0">Todavía no hay asignaturas asignadas a esta aula.</div>
+
+      <div class="tarjeta sin-click" *ngFor="let ap of asignaturasParalelo">
+        <div class="tarjeta-info">
+          <strong>{{ ap.detalleMalla.asignatura.nombre }}</strong>
+          <span>Docente: {{ ap.docente.nombres }} {{ ap.docente.apellidos }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

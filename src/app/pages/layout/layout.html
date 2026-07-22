@@ -7,7 +7,7 @@
 </div>
     <nav class="sidebar-menu">
       <ul>
-        <li routerLinkActive="active" *ngIf="esAdminOSecretaria">
+        <li routerLinkActive="active" *ngIf="esAdminOSecretariaOEstudianteOUsuario">
   <a routerLink="/dashboard"><i class="icon">📊</i> Dashboard</a>
 </li>
 
@@ -15,7 +15,11 @@
   <a routerLink="/users"><i class="icon">👥</i> Usuarios</a>
 </li>
 
-<li class="has-submenu" *ngIf="esAdminOSecretaria()">
+<li routerLinkActive="active" *ngIf="esAdmin()">
+  <a routerLink="/comprobantes-pendientes"><i class="icon">📄</i> Comprobantes Pendientes</a>
+</li>
+
+<li class="has-submenu" *ngIf="esSecretaria()">
   <a (click)="toggleMatriculas()" class="menu-parent">
     <i class="icon">📝</i> Matrículas
     <i class="icon-arrow" [class.rotated]="matriculasAbierto">▾</i>
@@ -30,11 +34,18 @@
   </ul>
 </li>
 
-<li routerLinkActive="active">
+<li routerLinkActive="active" *ngIf="esAdminOSecretariaOEstudiante()">
   <a routerLink="/historial-academico">Historial Académico</a>
 </li>
+<li routerLinkActive="active" *ngIf="esAdminOSecretariaOEstudianteOUsuario">
+  <a routerLink="/gestion-academica"><i class="icon">⚙️</i> Gestión Académica</a>
+</li>
 
-<li routerLinkActive="active" *ngIf="esAdminOSecretariaOEstudiante">
+<li routerLinkActive="active" *ngIf="esAdmin()">
+  <a routerLink="/periodos-flujo"><i class="icon">🏛️</i> Periodos</a>
+</li>
+
+<li routerLinkActive="active" *ngIf="esAdminOSecretariaOEstudianteOUsuario">
   <a routerLink="/settings"><i class="icon">⚙️</i> Configuración</a>
 </li>
       </ul>
