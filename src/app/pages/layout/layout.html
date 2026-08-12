@@ -41,6 +41,14 @@
   <a routerLink="/gestion-academica"><i class="icon">⚙️</i> Gestión Académica</a>
 </li>
 
+<li routerLinkActive="active">
+  <a routerLink="/catalogos"><i class="icon">📚</i> Catálogos</a>
+</li>
+
+<li routerLinkActive="active" *ngIf="esAdmin()">
+  <a routerLink="/crear-malla-rapida"><i class="icon"></i>Crear Mallas</a>
+</li>
+
 <li routerLinkActive="active" *ngIf="esAdmin()">
   <a routerLink="/periodos-flujo"><i class="icon">🏛️</i> Periodos</a>
 </li>

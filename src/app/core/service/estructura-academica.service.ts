@@ -69,6 +69,9 @@ export class EstructuraAcademicaService {
   }
 
   // ---------- VERSIONES DE MALLA ----------
+   crearMallaRapida(data: any): Observable<any> {
+  return this.http.post(`${this.apiUrl}/mallas/crear-rapida`, data, { headers: this.headers() });
+  }
   listarVersionesMalla(carreraId?: string): Observable<any> {
     const url = carreraId
       ? `${this.apiUrl}/versiones-malla?carreraId=${carreraId}`

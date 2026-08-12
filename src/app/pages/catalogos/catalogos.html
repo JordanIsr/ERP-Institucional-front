@@ -1,1 +1,271 @@
-<p>catalogos works!</p>
+<div class="catalogos-container">
+  <div class="panel-header">
+    <h2>Catálogos Académicos</h2>
+    <p class="descripcion">Aquí administras la información base del sistema: carreras, asignaturas, docentes y mallas curriculares. Estos catálogos alimentan el flujo de Periodos.</p>
+  </div>
+
+  <div class="tabs">
+    <button [class.active]="tab === 'carreras'" (click)="cambiarTab('carreras')">Carreras</button>
+    <button [class.active]="tab === 'asignaturas'" (click)="cambiarTab('asignaturas')">Asignaturas</button>
+    <button [class.active]="tab === 'docentes'" (click)="cambiarTab('docentes')">Docentes</button>
+    <button [class.active]="tab === 'mallas'" (click)="cambiarTab('mallas')">Mallas Curriculares</button>
+  </div>
+
+  <!-- ===================== TAB CARRERAS ===================== -->
+  <div *ngIf="tab === 'carreras'">
+    <p class="descripcion-tab">Registra las carreras que ofrece el instituto. Una carrera no se puede eliminar si ya tiene mallas curriculares creadas — desactívala en su lugar.</p>
+
+    <div class="card">
+      <h3>Nueva Carrera</h3>
+      <div class="fila-form">
+        <div class="campo"><label>Nombre</label><input [(ngModel)]="nuevaCarrera.nombre" placeholder="Ej. Desarrollo de Software"></div>
+        <div class="campo"><label>Código</label><input [(ngModel)]="nuevaCarrera.codigo" placeholder="Ej. TDS"></div>
+        <button class="btn btn-crear" (click)="crearCarrera()">Crear</button>
+      </div>
+    </div>
+
+    <div class="lista-tarjetas">
+      <div class="sin-datos" *ngIf="carreras.length === 0">No hay carreras registradas.</div>
+      <div class="tarjeta sin-click" *ngFor="let c of carreras">
+        <ng-container *ngIf="editandoCarreraId !== c.id; else editCarrera">
+          <div class="tarjeta-info">
+            <strong>{{ c.nombre }}</strong>
+            <span>{{ c.codigo }}</span>
+          </div>
+          <span class="badge-estado" [ngClass]="c.estado?.toLowerCase()">{{ c.estado }}</span>
+          <div class="tarjeta-acciones">
+            <button class="btn-icono" (click)="activarEdicionCarrera(c)">✏️</button>
+            <button class="btn-icono btn-eliminar" (click)="eliminarCarrera(c)">🗑️</button>
+          </div>
+        </ng-container>
+        <ng-template #editCarrera>
+          <div class="edicion-inline">
+            <input [(ngModel)]="carreraEdit.nombre">
+            <input [(ngModel)]="carreraEdit.codigo">
+            <select [(ngModel)]="carreraEdit.estado">
+              <option value="ACTIVA">ACTIVA</option>
+              <option value="INACTIVA">INACTIVA</option>
+            </select>
+            <button class="btn btn-guardar" (click)="guardarEdicionCarrera(c.id)">Guardar</button>
+            <button class="btn btn-cancelar" (click)="editandoCarreraId = ''">Cancelar</button>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== TAB ASIGNATURAS ===================== -->
+  <div *ngIf="tab === 'asignaturas'">
+    <p class="descripcion-tab">Catálogo único de asignaturas. Aquí es donde debes corregir el nombre si escribiste mal una materia — el cambio se refleja automáticamente en todas las mallas donde esa asignatura esté siendo usada.</p>
+
+    <div class="card">
+      <h3>Nueva Asignatura</h3>
+      <div class="fila-form">
+        <div class="campo"><label>Código</label><input [(ngModel)]="nuevaAsignatura.codigo" placeholder="Ej. MAT101"></div>
+        <div class="campo"><label>Nombre</label><input [(ngModel)]="nuevaAsignatura.nombre" placeholder="Ej. Matemáticas"></div>
+        <div class="campo"><label>Horas semanales</label><input type="number" [(ngModel)]="nuevaAsignatura.horasSemanales"></div>
+        <button class="btn btn-crear" (click)="crearAsignatura()">Crear</button>
+      </div>
+    </div>
+
+    <div class="lista-tarjetas">
+      <div class="sin-datos" *ngIf="asignaturas.length === 0">No hay asignaturas registradas.</div>
+      <div class="tarjeta sin-click" *ngFor="let a of asignaturas">
+        <ng-container *ngIf="editandoAsignaturaId !== a.id; else editAsig">
+          <div class="tarjeta-info">
+            <strong>{{ a.nombre }}</strong>
+            <span>{{ a.codigo }} · {{ a.horasSemanales }}h/semana</span>
+          </div>
+          <span class="badge-estado" [ngClass]="a.estado?.toLowerCase()">{{ a.estado }}</span>
+          <div class="tarjeta-acciones">
+            <button class="btn-icono" (click)="activarEdicionAsignatura(a)">✏️</button>
+            <button class="btn-icono btn-eliminar" (click)="eliminarAsignatura(a)">🗑️</button>
+          </div>
+        </ng-container>
+        <ng-template #editAsig>
+          <div class="edicion-inline">
+            <input [(ngModel)]="asignaturaEdit.codigo">
+            <input [(ngModel)]="asignaturaEdit.nombre">
+            <input type="number" [(ngModel)]="asignaturaEdit.horasSemanales">
+            <select [(ngModel)]="asignaturaEdit.estado">
+              <option value="ACTIVA">ACTIVA</option>
+              <option value="INACTIVA">INACTIVA</option>
+            </select>
+            <button class="btn btn-guardar" (click)="guardarEdicionAsignatura(a.id)">Guardar</button>
+            <button class="btn btn-cancelar" (click)="editandoAsignaturaId = ''">Cancelar</button>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== TAB DOCENTES ===================== -->
+  <div *ngIf="tab === 'docentes'">
+    <p class="descripcion-tab">Registro de docentes. Luego se les asigna una asignatura dentro de cada aula, desde el flujo de Periodos.</p>
+
+    <div class="card">
+      <h3>Nuevo Docente</h3>
+      <div class="fila-form">
+        <div class="campo"><label>Nombres</label><input [(ngModel)]="nuevoDocente.nombres"></div>
+        <div class="campo"><label>Apellidos</label><input [(ngModel)]="nuevoDocente.apellidos"></div>
+        <div class="campo"><label>Cédula</label><input [(ngModel)]="nuevoDocente.cedula"></div>
+        <div class="campo"><label>Correo</label><input [(ngModel)]="nuevoDocente.correo"></div>
+        <button class="btn btn-crear" (click)="crearDocente()">Crear</button>
+      </div>
+    </div>
+
+    <div class="lista-tarjetas">
+      <div class="sin-datos" *ngIf="docentes.length === 0">No hay docentes registrados.</div>
+      <div class="tarjeta sin-click" *ngFor="let d of docentes">
+        <ng-container *ngIf="editandoDocenteId !== d.id; else editDoc">
+          <div class="tarjeta-info">
+            <strong>{{ d.nombres }} {{ d.apellidos }}</strong>
+            <span>{{ d.cedula }} · {{ d.correo }}</span>
+          </div>
+          <span class="badge-estado" [ngClass]="d.estado?.toLowerCase()">{{ d.estado }}</span>
+          <div class="tarjeta-acciones">
+            <button class="btn-icono" (click)="activarEdicionDocente(d)">✏️</button>
+            <button class="btn-icono btn-eliminar" (click)="eliminarDocente(d)">🗑️</button>
+          </div>
+        </ng-container>
+        <ng-template #editDoc>
+          <div class="edicion-inline">
+            <input [(ngModel)]="docenteEdit.nombres">
+            <input [(ngModel)]="docenteEdit.apellidos">
+            <input [(ngModel)]="docenteEdit.cedula">
+            <input [(ngModel)]="docenteEdit.correo">
+            <button class="btn btn-guardar" (click)="guardarEdicionDocente(d.id)">Guardar</button>
+            <button class="btn btn-cancelar" (click)="editandoDocenteId = ''">Cancelar</button>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== TAB MALLAS ===================== -->
+  <div *ngIf="tab === 'mallas'">
+    <p class="descripcion-tab">Selecciona una carrera para ver/crear sus versiones de malla. Solo puede haber una malla ACTIVA por carrera a la vez; al activar una nueva, la anterior pasa automáticamente a HISTÓRICA.</p>
+
+    <div class="card">
+      <div class="campo">
+        <label>Carrera</label>
+        <select [(ngModel)]="carreraSeleccionadaId" (change)="onCarreraSeleccionada()">
+          <option value="">-- Selecciona --</option>
+          <option *ngFor="let c of carreras" [value]="c.id">{{ c.nombre }}</option>
+        </select>
+      </div>
+    </div>
+
+      <div class="card">
+    <h3>¿Prefieres crear la malla completa de una sola vez?</h3>
+    <a routerLink="/crear-malla-rapida" class="btn btn-chip">✨ Usar Asistente Rápido</a>
+  </div>
+
+    <div *ngIf="carreraSeleccionadaId">
+      <div class="card">
+        <h3>Nueva Versión de Malla</h3>
+        <div class="fila-form">
+          <div class="campo"><label>Nombre</label><input [(ngModel)]="nuevaMalla.nombre" placeholder="Ej. Malla 2026"></div>
+          <div class="campo"><label>Versión</label><input [(ngModel)]="nuevaMalla.version" placeholder="Ej. 2026"></div>
+          <div class="campo"><label>Vigencia desde</label><input type="date" [(ngModel)]="nuevaMalla.fechaVigenciaInicio"></div>
+          <div class="campo">
+            <label>Estado inicial</label>
+            <select [(ngModel)]="nuevaMalla.estado">
+              <option value="PROXIMA">PRÓXIMA</option>
+              <option value="ACTIVA">ACTIVA</option>
+            </select>
+          </div>
+          <button class="btn btn-crear" (click)="crearMalla()">Crear</button>
+        </div>
+      </div>
+
+      <div class="lista-tarjetas">
+        <div class="sin-datos" *ngIf="versionesMalla.length === 0">Esta carrera aún no tiene versiones de malla.</div>
+        <div class="tarjeta sin-click" *ngFor="let m of versionesMalla">
+          <ng-container *ngIf="editandoMallaId !== m.id; else editMalla">
+            <div class="tarjeta-info" (click)="mallaSeleccionadaId = m.id; onMallaSeleccionada()" style="cursor:pointer">
+              <strong>{{ m.nombre }}</strong>
+              <span>v{{ m.version }} · desde {{ m.fechaVigenciaInicio }}<span *ngIf="m.fechaVigenciaFin"> hasta {{ m.fechaVigenciaFin }}</span></span>
+            </div>
+            <span class="badge-estado" [ngClass]="m.estado?.toLowerCase()">{{ m.estado }}</span>
+            <div class="tarjeta-acciones">
+              <button class="btn-icono" (click)="activarEdicionMalla(m)">✏️</button>
+              <button class="btn-chip" *ngIf="m.estado !== 'ACTIVA'" (click)="activarMalla(m.id)">Activar</button>
+              <button class="btn-icono btn-eliminar" (click)="eliminarMalla(m)">🗑️</button>
+            </div>
+          </ng-container>
+          <ng-template #editMalla>
+            <div class="edicion-inline">
+              <input [(ngModel)]="mallaEdit.nombre" placeholder="Nombre">
+              <input [(ngModel)]="mallaEdit.version" placeholder="Versión">
+              <input type="date" [(ngModel)]="mallaEdit.fechaVigenciaInicio">
+              <button class="btn btn-guardar" (click)="guardarEdicionMalla(m.id)">Guardar</button>
+              <button class="btn btn-cancelar" (click)="editandoMallaId = ''">Cancelar</button>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- NIVELES -->
+      <div *ngIf="mallaSeleccionadaId" class="card">
+        <h3>Niveles de la malla seleccionada</h3>
+        <div class="fila-form">
+          <div class="campo"><label>Número</label><input type="number" [(ngModel)]="nuevoNivel.numero"></div>
+          <div class="campo"><label>Nombre (opcional)</label><input [(ngModel)]="nuevoNivel.nombre" placeholder="Ej. Nivel 1"></div>
+          <button class="btn btn-crear" (click)="crearNivel()">Crear Nivel</button>
+        </div>
+
+        <div class="lista-tarjetas" style="margin-top: 14px;">
+          <div class="sin-datos" *ngIf="niveles.length === 0">Esta malla aún no tiene niveles.</div>
+          <div class="tarjeta sin-click" *ngFor="let n of niveles">
+            <ng-container *ngIf="editandoNivelId !== n.id; else editNivel">
+              <div class="tarjeta-info" (click)="seleccionarNivel(n.id)" style="cursor:pointer">
+                <strong>Nivel {{ n.numero }}</strong>
+                <span>{{ n.nombre }}</span>
+              </div>
+              <div class="tarjeta-acciones">
+                <button class="btn-icono" (click)="activarEdicionNivel(n)">✏️</button>
+                <button class="btn-icono btn-eliminar" (click)="eliminarNivel(n)">🗑️</button>
+              </div>
+            </ng-container>
+            <ng-template #editNivel>
+              <div class="edicion-inline">
+                <input type="number" [(ngModel)]="nivelEdit.numero">
+                <input [(ngModel)]="nivelEdit.nombre">
+                <button class="btn btn-guardar" (click)="guardarEdicionNivel(n.id)">Guardar</button>
+                <button class="btn btn-cancelar" (click)="editandoNivelId = ''">Cancelar</button>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+
+        <!-- DETALLE MALLA -->
+        <div *ngIf="nivelSeleccionadoId" style="margin-top: 20px; border-top: 1px solid #f1f5f9; padding-top: 16px;">
+          <h3>Asignaturas de este nivel</h3>
+          <p class="descripcion-tab">Si el nombre de una asignatura está mal escrito, corrígelo en la pestaña "Asignaturas" de este catálogo — el cambio se aplicará aquí automáticamente.</p>
+          <div class="fila-form">
+            <div class="campo">
+              <label>Agregar asignatura</label>
+              <select [(ngModel)]="asignaturaParaNivelId">
+                <option value="">-- Selecciona --</option>
+                <option *ngFor="let a of asignaturas" [value]="a.id">{{ a.nombre }} ({{ a.codigo }})</option>
+              </select>
+            </div>
+            <button class="btn btn-crear" (click)="agregarAsignaturaANivel()">Agregar</button>
+          </div>
+
+          <div class="lista-tarjetas" style="margin-top: 14px;">
+            <div class="sin-datos" *ngIf="detalleMalla.length === 0">Este nivel aún no tiene asignaturas.</div>
+            <div class="tarjeta sin-click" *ngFor="let d of detalleMalla">
+              <div class="tarjeta-info">
+                <strong>{{ d.asignatura.nombre }}</strong>
+                <span>{{ d.asignatura.codigo }}</span>
+              </div>
+              <button class="btn-icono btn-eliminar" (click)="quitarAsignaturaDeNivel(d.id)">🗑️</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

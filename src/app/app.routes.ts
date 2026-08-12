@@ -12,6 +12,8 @@ import { HistorialAcademico } from './pages/historial-academico/historial-academ
 import { GestionAcademica } from './pages/gestion-academica/gestion-academica';
 import { ComprobantesPendientes } from './pages/comprobantes-pendientes/comprobantes-pendientes';
 import { PeriodosFlujo } from './pages/periodos-flujo/periodos-flujo';
+import { CrearMallaRapida } from './pages/crear-malla-rapida/crear-malla-rapida';
+import { Catalogos } from './pages/catalogos/catalogos';
 
 export const routes: Routes = [
   // 1. Redirigir la ruta raíz por defecto al login (o al dashboard, si el guard lo permite)
@@ -86,6 +88,10 @@ export const routes: Routes = [
   canActivate: [authGuard],
   data: { roles: ['admin'] },
 },
+
+{ path: 'crear-malla-rapida', component: CrearMallaRapida, canActivate: [authGuard], data: { roles: ['admin'] } },
+
+{ path: 'catalogos', component: Catalogos, canActivate: [authGuard], data: {roles: ['admin']}},
 
   ]
 
