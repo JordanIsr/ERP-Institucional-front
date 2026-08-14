@@ -1,0 +1,85 @@
+<div class="container-fluid">
+  <!-- Selector de Carrera -->
+  <div class="selector-card">
+    <label>Seleccionar Carrera:</label>
+    <select [(ngModel)]="carreraSeleccionadaId" (change)="onCarreraChange()">
+      <option value="">-- Seleccione una Carrera --</option>
+      <option *ngFor="let c of carreras" [value]="c.id">
+        {{ c.codigo }} - {{ c.nombre }}
+      </option>
+    </select>
+  </div>
+
+  <!-- Contenido de la Carrera -->
+  <div *ngIf="carreraDetalle">
+    <h2 class="carrera-titulo">
+      {{ carreraDetalle.nombre }} 
+      <span class="badge-code">{{ carreraDetalle.codigo }}</span>
+    </h2>
+
+    <!-- Iterar Versiones de Malla -->
+    <div *ngFor="let malla of carreraDetalle.versionesMalla" class="malla-card">
+      <div class="malla-header">
+        <h5>Malla: {{ malla.nombre }} (v{{ malla.version }})</h5>
+        <div class="malla-meta">
+          <span class="badge-estado">Estado: {{ malla.estado }}</span>
+          <span>Inicio: {{ malla.fechaVigenciaInicio | date:'dd/MM/yyyy' }}</span>
+        </div>
+      </div>
+
+      <div class="malla-body">
+        <!-- Niveles Accordion -->
+        <div *ngFor="let nivel of malla.niveles" class="nivel-accordion">
+          <div class="nivel-header" (click)="toggleNivel(nivel.id)">
+            <div class="nivel-title">
+              Nivel {{ nivel.numero }} {{ nivel.nombre ? '- ' + nivel.nombre : '' }}
+              <span class="badge-count">{{ nivel.detalles?.length || 0 }} Asignatura(s)</span>
+            </div>
+            <span class="arrow-icon">{{ isNivelAbierto(nivel.id) ? '▲' : '▼' }}</span>
+          </div>
+
+          <!-- Tabla de Asignaturas, Paralelos y Docentes -->
+          <div *ngIf="isNivelAbierto(nivel.id)" class="nivel-content">
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Código</th>
+                    <th>Asignatura</th>
+                    <th>Paralelos & Docentes Asignados</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let detalle of nivel.detalles">
+                    <td class="code-cell">{{ detalle.asignatura?.codigo || 'N/A' }}</td>
+                    <td>
+                      <div class="subject-name">{{ detalle.asignatura?.nombre }}</div>
+                      <div class="hours-info" *ngIf="detalle.asignatura?.horasSemanales">
+                        {{ detalle.asignatura?.horasSemanales }} hrs/semana
+                      </div>
+                    </td>
+                    <td>
+                      <span *ngIf="!detalle.asignaturaParalelos?.length" class="text-empty">
+                        Sin paralelos ni docentes asignados
+                      </span>
+
+                      <ul *ngIf="detalle.asignaturaParalelos?.length" class="paralelos-list">
+                        <li *ngFor="let ap of detalle.asignaturaParalelos">
+                          <span class="badge-paralelo">Paralelo {{ ap.paralelo?.nombre }}</span>
+                          <span *ngIf="ap.docente" class="teacher-info">
+                            👨‍🏫 {{ ap.docente.nombres }} {{ ap.docente.apellidos }} 
+                            <span class="cedula">({{ ap.docente.cedula }})</span>
+                          </span>
+                        </li>
+                      </ul>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

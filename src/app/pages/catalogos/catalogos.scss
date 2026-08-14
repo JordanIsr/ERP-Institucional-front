@@ -228,3 +228,72 @@
     flex-wrap: wrap;
   }
 }
+
+/* ==========================================================================
+   ESTILOS DE ACORDEONES (MALLAS, NIVELES Y ASIGNATURAS)
+   ========================================================================== */
+
+.acordeon-item {
+  margin-bottom: 10px;
+
+  /* La cabecera usa los mismos estilos de .tarjeta */
+  .acordeon-cabecera {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background-color: #f8fafc;
+    }
+
+    .flecha {
+      font-size: 11px;
+      color: #64748b;
+      transition: transform 0.2s ease;
+      display: inline-block;
+
+      &.abierta {
+        transform: rotate(90deg);
+        color: #4f46e5;
+      }
+    }
+  }
+
+  .acordeon-cuerpo {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-top: none;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    padding: 16px;
+    margin-top: -4px; /* Ensambla perfecto con la tarjeta superior */
+  }
+
+  /* Si el acordeón está desplegado, quitamos los bordes inferiores redondeados a la tarjeta */
+  &:has(.acordeon-cuerpo) .acordeon-cabecera {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+
+/* Limpieza completa de botones de iconos */
+.tarjeta-acciones {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  .btn-icono {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+
+    &:hover {
+      background-color: #f1f5f9 !important;
+    }
+  }
+}

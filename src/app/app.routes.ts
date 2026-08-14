@@ -14,6 +14,7 @@ import { ComprobantesPendientes } from './pages/comprobantes-pendientes/comproba
 import { PeriodosFlujo } from './pages/periodos-flujo/periodos-flujo';
 import { CrearMallaRapida } from './pages/crear-malla-rapida/crear-malla-rapida';
 import { Catalogos } from './pages/catalogos/catalogos';
+import { CarreraDetalle } from './pages/carrera-detalle/carrera-detalle';
 
 export const routes: Routes = [
   // 1. Redirigir la ruta raíz por defecto al login (o al dashboard, si el guard lo permite)
@@ -85,6 +86,13 @@ export const routes: Routes = [
 {
   path: 'periodos-flujo',
   component: PeriodosFlujo,
+  canActivate: [authGuard],
+  data: { roles: ['admin'] },
+},
+
+{
+  path: 'carrera-detalle',
+  component: CarreraDetalle,
   canActivate: [authGuard],
   data: { roles: ['admin'] },
 },

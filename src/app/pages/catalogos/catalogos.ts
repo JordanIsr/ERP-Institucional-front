@@ -1,8 +1,8 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { EstructuraAcademicaService } from '../../core/service/estructura-academica.service';
 import { RouterModule } from '@angular/router';
+import { EstructuraAcademicaService } from '../../core/service/estructura-academica.service';
 
 type TabCatalogo = 'carreras' | 'asignaturas' | 'docentes' | 'mallas';
 
@@ -36,22 +36,25 @@ export class Catalogos implements OnInit {
   editandoDocenteId = '';
   docenteEdit: any = {};
 
-  // ---------- MALLAS (drill-down interno) ----------
+  // ---------- MALLAS ----------
   carreraSeleccionadaId = '';
   versionesMalla: any[] = [];
   nuevaMalla = { nombre: '', version: '', fechaVigenciaInicio: '', estado: 'PROXIMA' };
   editandoMallaId = '';
   mallaEdit: any = {};
 
-  mallaSeleccionadaId = '';
-  niveles: any[] = [];
   nuevoNivel = { numero: 1, nombre: '' };
   editandoNivelId = '';
   nivelEdit: any = {};
 
-  nivelSeleccionadoId = '';
-  detalleMalla: any[] = [];
   asignaturaParaNivelId = '';
+
+  // ---------- ACORDEÓN ----------
+  mallaExpandidaId = '';
+  nivelesPorMalla: { [mallaId: string]: any[] } = {};
+
+  nivelExpandidoId = '';
+  asignaturasPorNivel: { [nivelId: string]: any[] } = {};
 
   ngOnInit(): void {
     this.cargarCarreras();
@@ -173,8 +176,10 @@ export class Catalogos implements OnInit {
 
   // ================= MALLAS =================
   onCarreraSeleccionada() {
-    this.mallaSeleccionadaId = '';
-    this.niveles = [];
+    this.mallaExpandidaId = '';
+    this.nivelExpandidoId = '';
+    this.nivelesPorMalla = {};
+    this.asignaturasPorNivel = {};
     if (!this.carreraSeleccionadaId) { this.versionesMalla = []; return; }
     this.service.listarVersionesMalla(this.carreraSeleccionadaId).subscribe({
       next: (d) => (this.versionesMalla = d),
@@ -221,23 +226,34 @@ export class Catalogos implements OnInit {
     });
   }
 
-  onMallaSeleccionada() {
-    this.nivelSeleccionadoId = '';
-    this.detalleMalla = [];
-    if (!this.mallaSeleccionadaId) { this.niveles = []; return; }
-    this.service.listarNiveles(this.mallaSeleccionadaId).subscribe({
-      next: (d) => (this.niveles = d),
+  // ---------- ACORDEÓN: malla ----------
+  toggleMalla(mallaId: string) {
+    if (this.mallaExpandidaId === mallaId) {
+      this.mallaExpandidaId = '';
+      return;
+    }
+    this.mallaExpandidaId = mallaId;
+    this.nivelExpandidoId = '';
+    this.cargarNivelesDeMalla(mallaId);
+  }
+
+  cargarNivelesDeMalla(mallaId: string) {
+    this.service.listarNiveles(mallaId).subscribe({
+      next: (d) => (this.nivelesPorMalla[mallaId] = d),
       error: (e) => console.error(e),
     });
   }
 
-  crearNivel() {
-    if (!this.mallaSeleccionadaId || !this.nuevoNivel.numero) {
-      alert('Selecciona una malla y el número de nivel.');
+  crearNivel(mallaId: string) {
+    if (!this.nuevoNivel.numero) {
+      alert('Indica el número de nivel.');
       return;
     }
-    this.service.crearNivel({ ...this.nuevoNivel, versionMallaId: this.mallaSeleccionadaId }).subscribe({
-      next: () => { this.nuevoNivel = { numero: 1, nombre: '' }; this.onMallaSeleccionada(); },
+    this.service.crearNivel({ ...this.nuevoNivel, versionMallaId: mallaId }).subscribe({
+      next: () => {
+        this.nuevoNivel = { numero: 1, nombre: '' };
+        this.cargarNivelesDeMalla(mallaId);
+      },
       error: (e) => alert(e.error?.message || 'Error al crear nivel'),
     });
   }
@@ -247,44 +263,59 @@ export class Catalogos implements OnInit {
     this.nivelEdit = { numero: n.numero, nombre: n.nombre };
   }
 
-  guardarEdicionNivel(id: string) {
+  guardarEdicionNivel(id: string, mallaId: string) {
     this.service.editarNivel(id, this.nivelEdit).subscribe({
-      next: () => { this.editandoNivelId = ''; this.onMallaSeleccionada(); },
+      next: () => {
+        this.editandoNivelId = '';
+        this.cargarNivelesDeMalla(mallaId);
+      },
       error: (e) => alert(e.error?.message || 'Error al actualizar nivel'),
     });
   }
 
-  eliminarNivel(n: any) {
+  eliminarNivel(n: any, mallaId: string) {
     if (!confirm(`¿Eliminar el Nivel ${n.numero}? Solo es posible si no tiene asignaturas asociadas.`)) return;
     this.service.eliminarNivel(n.id).subscribe({
-      next: () => this.onMallaSeleccionada(),
+      next: () => this.cargarNivelesDeMalla(mallaId),
       error: (e) => alert(e.error?.message || 'No se pudo eliminar el nivel.'),
     });
   }
 
-  seleccionarNivel(id: string) {
-    this.nivelSeleccionadoId = id;
-    this.service.listarDetalleMalla(id).subscribe({
-      next: (d) => (this.detalleMalla = d),
+  // ---------- ACORDEÓN: nivel ----------
+  toggleNivel(nivelId: string) {
+    if (this.nivelExpandidoId === nivelId) {
+      this.nivelExpandidoId = '';
+      return;
+    }
+    this.nivelExpandidoId = nivelId;
+    this.cargarAsignaturasDeNivel(nivelId);
+  }
+
+  cargarAsignaturasDeNivel(nivelId: string) {
+    this.service.listarDetalleMalla(nivelId).subscribe({
+      next: (d) => (this.asignaturasPorNivel[nivelId] = d),
       error: (e) => console.error(e),
     });
   }
 
-  agregarAsignaturaANivel() {
-    if (!this.nivelSeleccionadoId || !this.asignaturaParaNivelId) {
-      alert('Selecciona nivel y asignatura.');
+  agregarAsignaturaANivel(nivelId: string) {
+    if (!this.asignaturaParaNivelId) {
+      alert('Selecciona una asignatura.');
       return;
     }
-    this.service.agregarAsignaturaANivel({ nivelId: this.nivelSeleccionadoId, asignaturaId: this.asignaturaParaNivelId }).subscribe({
-      next: () => { this.asignaturaParaNivelId = ''; this.seleccionarNivel(this.nivelSeleccionadoId); },
+    this.service.agregarAsignaturaANivel({ nivelId, asignaturaId: this.asignaturaParaNivelId }).subscribe({
+      next: () => {
+        this.asignaturaParaNivelId = '';
+        this.cargarAsignaturasDeNivel(nivelId);
+      },
       error: (e) => alert(e.error?.message || 'Error al agregar asignatura'),
     });
   }
 
-  quitarAsignaturaDeNivel(detalleId: string) {
+  quitarAsignaturaDeNivel(detalleId: string, nivelId: string) {
     if (!confirm('¿Quitar esta asignatura del nivel?')) return;
     this.service.quitarAsignaturaDeNivel(detalleId).subscribe({
-      next: () => this.seleccionarNivel(this.nivelSeleccionadoId),
+      next: () => this.cargarAsignaturasDeNivel(nivelId),
       error: (e) => alert(e.error?.message || 'Error al quitar la asignatura'),
     });
   }

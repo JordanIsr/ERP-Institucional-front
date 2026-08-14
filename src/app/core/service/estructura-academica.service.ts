@@ -25,6 +25,10 @@ export class EstructuraAcademicaService {
   eliminarCarrera(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/carreras/${id}`, { headers: this.headers() });
   }
+  // En tu EstructuraAcademicaService agrega:
+  obtenerDetalleCompletoCarrera(carreraId: string): Observable<any> {
+  return this.http.get<any>(`${this.apiUrl}/carreras/${carreraId}/detalle-completo`);
+  }
 
   // ---------- PERIODOS ----------
   listarPeriodos(): Observable<any> {

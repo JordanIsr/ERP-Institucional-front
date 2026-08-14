@@ -142,26 +142,28 @@
     </div>
   </div>
 
-  <!-- ===================== TAB MALLAS ===================== -->
+<!-- ===================== TAB MALLAS ===================== -->
   <div *ngIf="tab === 'mallas'">
-    <p class="descripcion-tab">Selecciona una carrera para ver/crear sus versiones de malla. Solo puede haber una malla ACTIVA por carrera a la vez; al activar una nueva, la anterior pasa automáticamente a HISTÓRICA.</p>
+    <p class="descripcion-tab">Selecciona una carrera. Cada malla es una tarjeta: haz clic en su nombre para desplegar sus niveles, y clic en un nivel para desplegar sus asignaturas.</p>
 
     <div class="card">
       <div class="campo">
         <label>Carrera</label>
         <select [(ngModel)]="carreraSeleccionadaId" (change)="onCarreraSeleccionada()">
-          <option value="">-- Selecciona --</option>
-          <option *ngFor="let c of carreras" [value]="c.id">{{ c.nombre }}</option>
+          <option value="">-- Selecciona una carrera --</option>
+          <option *ngFor="let c of carreras" [value]="c.id">{{ c.nombre }} ({{ c.codigo }})</option>
         </select>
       </div>
     </div>
 
-      <div class="card">
-    <h3>¿Prefieres crear la malla completa de una sola vez?</h3>
-    <a routerLink="/crear-malla-rapida" class="btn btn-chip">✨ Usar Asistente Rápido</a>
-  </div>
+    <div class="card" *ngIf="carreraSeleccionadaId">
+      <h3>¿Prefieres crear la malla completa de una sola vez?</h3>
+      <a routerLink="/crear-malla-rapida" class="btn-chip">✨ Usar Asistente Rápido</a>
+    </div>
 
     <div *ngIf="carreraSeleccionadaId">
+
+      <!-- FORMULARIO NUEVA MALLA -->
       <div class="card">
         <h3>Nueva Versión de Malla</h3>
         <div class="fila-form">
@@ -179,93 +181,40 @@
         </div>
       </div>
 
-      <div class="lista-tarjetas">
-        <div class="sin-datos" *ngIf="versionesMalla.length === 0">Esta carrera aún no tiene versiones de malla.</div>
-        <div class="tarjeta sin-click" *ngFor="let m of versionesMalla">
-          <ng-container *ngIf="editandoMallaId !== m.id; else editMalla">
-            <div class="tarjeta-info" (click)="mallaSeleccionadaId = m.id; onMallaSeleccionada()" style="cursor:pointer">
-              <strong>{{ m.nombre }}</strong>
-              <span>v{{ m.version }} · desde {{ m.fechaVigenciaInicio }}<span *ngIf="m.fechaVigenciaFin"> hasta {{ m.fechaVigenciaFin }}</span></span>
-            </div>
-            <span class="badge-estado" [ngClass]="m.estado?.toLowerCase()">{{ m.estado }}</span>
-            <div class="tarjeta-acciones">
-              <button class="btn-icono" (click)="activarEdicionMalla(m)">✏️</button>
-              <button class="btn-chip" *ngIf="m.estado !== 'ACTIVA'" (click)="activarMalla(m.id)">Activar</button>
-              <button class="btn-icono btn-eliminar" (click)="eliminarMalla(m)">🗑️</button>
-            </div>
-          </ng-container>
-          <ng-template #editMalla>
-            <div class="edicion-inline">
-              <input [(ngModel)]="mallaEdit.nombre" placeholder="Nombre">
-              <input [(ngModel)]="mallaEdit.version" placeholder="Versión">
-              <input type="date" [(ngModel)]="mallaEdit.fechaVigenciaInicio">
-              <button class="btn btn-guardar" (click)="guardarEdicionMalla(m.id)">Guardar</button>
-              <button class="btn btn-cancelar" (click)="editandoMallaId = ''">Cancelar</button>
-            </div>
-          </ng-template>
-        </div>
+      <!-- LISTA/ACORDEÓN DE MALLAS -->
+      <div class="acordeon-item" *ngFor="let m of versionesMalla">
+
+  <!-- CABECERA CON EL FORMATO EXACTO DE LA TARJETA -->
+  <div class="tarjeta acordeon-cabecera" (click)="toggleMalla(m.id)">
+    <div class="tarjeta-info">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span class="flecha" [class.abierta]="mallaExpandidaId === m.id">▸</span>
+        <strong>{{ m.nombre }} <span style="font-weight: 400; color: #64748b;">(v{{ m.version }})</span></strong>
       </div>
+      <span>Desde {{ m.fechaVigenciaInicio }}<ng-container *ngIf="m.fechaVigenciaFin"> hasta {{ m.fechaVigenciaFin }}</ng-container></span>
+    </div>
 
-      <!-- NIVELES -->
-      <div *ngIf="mallaSeleccionadaId" class="card">
-        <h3>Niveles de la malla seleccionada</h3>
-        <div class="fila-form">
-          <div class="campo"><label>Número</label><input type="number" [(ngModel)]="nuevoNivel.numero"></div>
-          <div class="campo"><label>Nombre (opcional)</label><input [(ngModel)]="nuevoNivel.nombre" placeholder="Ej. Nivel 1"></div>
-          <button class="btn btn-crear" (click)="crearNivel()">Crear Nivel</button>
-        </div>
+    <span class="badge-estado" [ngClass]="m.estado?.toLowerCase()">{{ m.estado }}</span>
 
-        <div class="lista-tarjetas" style="margin-top: 14px;">
-          <div class="sin-datos" *ngIf="niveles.length === 0">Esta malla aún no tiene niveles.</div>
-          <div class="tarjeta sin-click" *ngFor="let n of niveles">
-            <ng-container *ngIf="editandoNivelId !== n.id; else editNivel">
-              <div class="tarjeta-info" (click)="seleccionarNivel(n.id)" style="cursor:pointer">
-                <strong>Nivel {{ n.numero }}</strong>
-                <span>{{ n.nombre }}</span>
-              </div>
-              <div class="tarjeta-acciones">
-                <button class="btn-icono" (click)="activarEdicionNivel(n)">✏️</button>
-                <button class="btn-icono btn-eliminar" (click)="eliminarNivel(n)">🗑️</button>
-              </div>
-            </ng-container>
-            <ng-template #editNivel>
-              <div class="edicion-inline">
-                <input type="number" [(ngModel)]="nivelEdit.numero">
-                <input [(ngModel)]="nivelEdit.nombre">
-                <button class="btn btn-guardar" (click)="guardarEdicionNivel(n.id)">Guardar</button>
-                <button class="btn btn-cancelar" (click)="editandoNivelId = ''">Cancelar</button>
-              </div>
-            </ng-template>
-          </div>
-        </div>
-
-        <!-- DETALLE MALLA -->
-        <div *ngIf="nivelSeleccionadoId" style="margin-top: 20px; border-top: 1px solid #f1f5f9; padding-top: 16px;">
-          <h3>Asignaturas de este nivel</h3>
-          <p class="descripcion-tab">Si el nombre de una asignatura está mal escrito, corrígelo en la pestaña "Asignaturas" de este catálogo — el cambio se aplicará aquí automáticamente.</p>
-          <div class="fila-form">
-            <div class="campo">
-              <label>Agregar asignatura</label>
-              <select [(ngModel)]="asignaturaParaNivelId">
-                <option value="">-- Selecciona --</option>
-                <option *ngFor="let a of asignaturas" [value]="a.id">{{ a.nombre }} ({{ a.codigo }})</option>
-              </select>
-            </div>
-            <button class="btn btn-crear" (click)="agregarAsignaturaANivel()">Agregar</button>
-          </div>
-
-          <div class="lista-tarjetas" style="margin-top: 14px;">
-            <div class="sin-datos" *ngIf="detalleMalla.length === 0">Este nivel aún no tiene asignaturas.</div>
-            <div class="tarjeta sin-click" *ngFor="let d of detalleMalla">
-              <div class="tarjeta-info">
-                <strong>{{ d.asignatura.nombre }}</strong>
-                <span>{{ d.asignatura.codigo }}</span>
-              </div>
-              <button class="btn-icono btn-eliminar" (click)="quitarAsignaturaDeNivel(d.id)">🗑️</button>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="tarjeta-acciones" (click)="$event.stopPropagation()">
+      <button class="btn-chip" *ngIf="m.estado !== 'ACTIVA'" (click)="activarMalla(m.id)">Activar</button>
+      <button class="btn-icono" (click)="activarEdicionMalla(m)" title="Editar">✏️</button>
+      <button class="btn-icono btn-eliminar" (click)="eliminarMalla(m)" title="Eliminar">🗑️</button>
     </div>
   </div>
+
+  <!-- EDICIÓN INLINE -->
+  <div class="edicion-inline acordeon-edicion" *ngIf="editandoMallaId === m.id" (click)="$event.stopPropagation()">
+    <input [(ngModel)]="mallaEdit.nombre" placeholder="Nombre">
+    <input [(ngModel)]="mallaEdit.version" placeholder="Versión">
+    <input type="date" [(ngModel)]="mallaEdit.fechaVigenciaInicio">
+    <button class="btn btn-guardar" (click)="guardarEdicionMalla(m.id)">Guardar</button>
+    <button class="btn btn-cancelar" (click)="editandoMallaId = ''">Cancelar</button>
+  </div>
+
+  <!-- CUERPO EXPANDIBLE -->
+  <div class="acordeon-cuerpo" *ngIf="mallaExpandidaId === m.id">
+    <!-- Contenido de niveles -->
+  </div>
+
 </div>
