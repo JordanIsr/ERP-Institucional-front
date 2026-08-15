@@ -1,0 +1,48 @@
+<div class="malla-container">
+  <div class="header-acciones">
+    <h2>Diseñador y Editor de Mallas Curriculares</h2>
+    <button class="btn-guardar" (click)="guardarMalla()">Guardar Cambios Malla</button>
+  </div>
+
+  <!-- Configuración de Carrera y Carga de Mallas -->
+  <div class="card-config">
+    <div class="campo">
+      <label>Carrera:</label>
+      <select [(ngModel)]="carreraId" (change)="cargarMallaExistente()">
+        <option value="">-- Seleccione Carrera --</option>
+        <option *ngFor="let c of carreras" [value]="c.id">{{ c.nombre }}</option>
+      </select>
+    </div>
+    
+    <div class="campo">
+      <label>Nombre/Versión de Malla:</label>
+      <input [(ngModel)]="nombreMalla" placeholder="Ej. Malla Rediseño 2026">
+    </div>
+
+    <div class="campo-btn">
+      <button class="btn-secundario" (click)="agregarNivel()">+ Agregar Nivel/Semestre</button>
+    </div>
+  </div>
+
+  <!-- Niveles Dinámicos (Creados a necesidad) -->
+  <div class="grid-niveles">
+    <div class="card-nivel" *ngFor="let nivel of niveles; let i = index">
+      <div class="nivel-header">
+        <h3>Nivel {{ nivel.numero }}</h3>
+        <button class="btn-eliminar-nivel" (click)="eliminarNivel(i)" title="Eliminar este nivel">✕ Nivel</button>
+      </div>
+      
+      <div class="materia-fila" *ngFor="let matId of nivel.asignaturasIds; let j = index; trackBy: trackByFn">
+        <select [(ngModel)]="nivel.asignaturasIds[j]">
+          <option value="">-- Seleccionar Asignatura --</option>
+          <option *ngFor="let asig of asignaturasCatalogo" [value]="asig.id">
+            {{ asig.nombre }} {{ asig.codigo ? '(' + asig.codigo + ')' : '' }}
+          </option>
+        </select>
+        <button class="btn-del" (click)="removerMateriaDeNivel(i, j)">✕</button>
+      </div>
+
+      <button class="btn-add" (click)="agregarMateriaANivel(i)">+ Asignar Materia</button>
+    </div>
+  </div>
+</div>

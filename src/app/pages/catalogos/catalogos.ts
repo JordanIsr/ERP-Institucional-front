@@ -1,15 +1,14 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
 import { EstructuraAcademicaService } from '../../core/service/estructura-academica.service';
 
-type TabCatalogo = 'carreras' | 'asignaturas' | 'docentes' | 'mallas';
+type TabCatalogo = 'carreras' | 'asignaturas' | 'docentes';
 
 @Component({
   selector: 'app-catalogos',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './catalogos.html',
   styleUrl: './catalogos.scss',
 })
@@ -35,26 +34,6 @@ export class Catalogos implements OnInit {
   nuevoDocente = { nombres: '', apellidos: '', cedula: '', correo: '' };
   editandoDocenteId = '';
   docenteEdit: any = {};
-
-  // ---------- MALLAS ----------
-  carreraSeleccionadaId = '';
-  versionesMalla: any[] = [];
-  nuevaMalla = { nombre: '', version: '', fechaVigenciaInicio: '', estado: 'PROXIMA' };
-  editandoMallaId = '';
-  mallaEdit: any = {};
-
-  nuevoNivel = { numero: 1, nombre: '' };
-  editandoNivelId = '';
-  nivelEdit: any = {};
-
-  asignaturaParaNivelId = '';
-
-  // ---------- ACORDEÓN ----------
-  mallaExpandidaId = '';
-  nivelesPorMalla: { [mallaId: string]: any[] } = {};
-
-  nivelExpandidoId = '';
-  asignaturasPorNivel: { [nivelId: string]: any[] } = {};
 
   ngOnInit(): void {
     this.cargarCarreras();
@@ -98,7 +77,7 @@ export class Catalogos implements OnInit {
     if (!confirm(`¿Eliminar la carrera "${c.nombre}"?`)) return;
     this.service.eliminarCarrera(c.id).subscribe({
       next: () => this.cargarCarreras(),
-      error: (e) => alert(e.error?.message || 'No se pudo eliminar (probablemente tiene mallas asociadas).'),
+      error: (e) => alert(e.error?.message || 'No se pudo eliminar la carrera.'),
     });
   }
 
@@ -134,7 +113,7 @@ export class Catalogos implements OnInit {
     if (!confirm(`¿Eliminar la asignatura "${a.nombre}"?`)) return;
     this.service.eliminarAsignaturaCatalogo(a.id).subscribe({
       next: () => this.cargarAsignaturas(),
-      error: (e) => alert(e.error?.message || 'No se pudo eliminar (probablemente está en uso en alguna malla).'),
+      error: (e) => alert(e.error?.message || 'No se pudo eliminar la asignatura.'),
     });
   }
 
@@ -170,153 +149,7 @@ export class Catalogos implements OnInit {
     if (!confirm(`¿Eliminar al docente "${d.nombres} ${d.apellidos}"?`)) return;
     this.service.eliminarDocente(d.id).subscribe({
       next: () => this.cargarDocentes(),
-      error: (e) => alert(e.error?.message || 'No se pudo eliminar (probablemente tiene aulas asignadas).'),
-    });
-  }
-
-  // ================= MALLAS =================
-  onCarreraSeleccionada() {
-    this.mallaExpandidaId = '';
-    this.nivelExpandidoId = '';
-    this.nivelesPorMalla = {};
-    this.asignaturasPorNivel = {};
-    if (!this.carreraSeleccionadaId) { this.versionesMalla = []; return; }
-    this.service.listarVersionesMalla(this.carreraSeleccionadaId).subscribe({
-      next: (d) => (this.versionesMalla = d),
-      error: (e) => console.error(e),
-    });
-  }
-
-  crearMalla() {
-    if (!this.carreraSeleccionadaId || !this.nuevaMalla.nombre || !this.nuevaMalla.version || !this.nuevaMalla.fechaVigenciaInicio) {
-      alert('Completa todos los campos de la malla.');
-      return;
-    }
-    this.service.crearVersionMalla({ ...this.nuevaMalla, carreraId: this.carreraSeleccionadaId }).subscribe({
-      next: () => { this.nuevaMalla = { nombre: '', version: '', fechaVigenciaInicio: '', estado: 'PROXIMA' }; this.onCarreraSeleccionada(); },
-      error: (e) => alert(e.error?.message || 'Error al crear malla'),
-    });
-  }
-
-  activarEdicionMalla(m: any) {
-    this.editandoMallaId = m.id;
-    this.mallaEdit = { nombre: m.nombre, version: m.version, fechaVigenciaInicio: m.fechaVigenciaInicio };
-  }
-
-  guardarEdicionMalla(id: string) {
-    this.service.editarVersionMalla(id, this.mallaEdit).subscribe({
-      next: () => { this.editandoMallaId = ''; this.onCarreraSeleccionada(); },
-      error: (e) => alert(e.error?.message || 'Error al actualizar la malla'),
-    });
-  }
-
-  activarMalla(id: string) {
-    if (!confirm('Esto marcará esta malla como ACTIVA y pasará la malla actualmente activa (si existe) a HISTORICA. ¿Continuar?')) return;
-    this.service.activarVersionMalla(id).subscribe({
-      next: () => this.onCarreraSeleccionada(),
-      error: (e) => alert(e.error?.message || 'Error al activar malla'),
-    });
-  }
-
-  eliminarMalla(m: any) {
-    if (!confirm(`¿Eliminar "${m.nombre}"? Solo es posible si no tiene niveles definidos.`)) return;
-    this.service.eliminarVersionMalla(m.id).subscribe({
-      next: () => this.onCarreraSeleccionada(),
-      error: (e) => alert(e.error?.message || 'No se pudo eliminar la malla.'),
-    });
-  }
-
-  // ---------- ACORDEÓN: malla ----------
-  toggleMalla(mallaId: string) {
-    if (this.mallaExpandidaId === mallaId) {
-      this.mallaExpandidaId = '';
-      return;
-    }
-    this.mallaExpandidaId = mallaId;
-    this.nivelExpandidoId = '';
-    this.cargarNivelesDeMalla(mallaId);
-  }
-
-  cargarNivelesDeMalla(mallaId: string) {
-    this.service.listarNiveles(mallaId).subscribe({
-      next: (d) => (this.nivelesPorMalla[mallaId] = d),
-      error: (e) => console.error(e),
-    });
-  }
-
-  crearNivel(mallaId: string) {
-    if (!this.nuevoNivel.numero) {
-      alert('Indica el número de nivel.');
-      return;
-    }
-    this.service.crearNivel({ ...this.nuevoNivel, versionMallaId: mallaId }).subscribe({
-      next: () => {
-        this.nuevoNivel = { numero: 1, nombre: '' };
-        this.cargarNivelesDeMalla(mallaId);
-      },
-      error: (e) => alert(e.error?.message || 'Error al crear nivel'),
-    });
-  }
-
-  activarEdicionNivel(n: any) {
-    this.editandoNivelId = n.id;
-    this.nivelEdit = { numero: n.numero, nombre: n.nombre };
-  }
-
-  guardarEdicionNivel(id: string, mallaId: string) {
-    this.service.editarNivel(id, this.nivelEdit).subscribe({
-      next: () => {
-        this.editandoNivelId = '';
-        this.cargarNivelesDeMalla(mallaId);
-      },
-      error: (e) => alert(e.error?.message || 'Error al actualizar nivel'),
-    });
-  }
-
-  eliminarNivel(n: any, mallaId: string) {
-    if (!confirm(`¿Eliminar el Nivel ${n.numero}? Solo es posible si no tiene asignaturas asociadas.`)) return;
-    this.service.eliminarNivel(n.id).subscribe({
-      next: () => this.cargarNivelesDeMalla(mallaId),
-      error: (e) => alert(e.error?.message || 'No se pudo eliminar el nivel.'),
-    });
-  }
-
-  // ---------- ACORDEÓN: nivel ----------
-  toggleNivel(nivelId: string) {
-    if (this.nivelExpandidoId === nivelId) {
-      this.nivelExpandidoId = '';
-      return;
-    }
-    this.nivelExpandidoId = nivelId;
-    this.cargarAsignaturasDeNivel(nivelId);
-  }
-
-  cargarAsignaturasDeNivel(nivelId: string) {
-    this.service.listarDetalleMalla(nivelId).subscribe({
-      next: (d) => (this.asignaturasPorNivel[nivelId] = d),
-      error: (e) => console.error(e),
-    });
-  }
-
-  agregarAsignaturaANivel(nivelId: string) {
-    if (!this.asignaturaParaNivelId) {
-      alert('Selecciona una asignatura.');
-      return;
-    }
-    this.service.agregarAsignaturaANivel({ nivelId, asignaturaId: this.asignaturaParaNivelId }).subscribe({
-      next: () => {
-        this.asignaturaParaNivelId = '';
-        this.cargarAsignaturasDeNivel(nivelId);
-      },
-      error: (e) => alert(e.error?.message || 'Error al agregar asignatura'),
-    });
-  }
-
-  quitarAsignaturaDeNivel(detalleId: string, nivelId: string) {
-    if (!confirm('¿Quitar esta asignatura del nivel?')) return;
-    this.service.quitarAsignaturaDeNivel(detalleId).subscribe({
-      next: () => this.cargarAsignaturasDeNivel(nivelId),
-      error: (e) => alert(e.error?.message || 'Error al quitar la asignatura'),
+      error: (e) => alert(e.error?.message || 'No se pudo eliminar al docente.'),
     });
   }
 }

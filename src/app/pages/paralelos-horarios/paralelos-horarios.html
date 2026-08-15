@@ -1,0 +1,56 @@
+<div class="paralelos-container">
+  <h2>Apertura de Paralelos y Horarios</h2>
+
+  <div class="card-formulario">
+    <div class="grid-form">
+      <!-- Selección Dinámica del Periodo-Carrera -->
+      <div class="campo">
+        <label>Periodo - Carrera *</label>
+        <select [(ngModel)]="periodoCarreraId" (change)="alCambiarPeriodo()">
+          <option value="">-- Seleccione Periodo Académico --</option>
+          <option *ngFor="let p of periodosCarrera" [value]="p.id">
+            {{ p.nombre || p.periodo?.nombre }} - {{ p.carrera?.nombre }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Selección del Nivel/Malla -->
+      <div class="campo">
+        <label>Nivel de la Malla *</label>
+        <select [(ngModel)]="nivelId">
+          <option value="">-- Seleccione Nivel --</option>
+          <option *ngFor="let n of nivelesMalla" [value]="n.id">
+            {{ n.nombre }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Nombre del Paralelo -->
+      <div class="campo">
+        <label>Nombre Paralelo *</label>
+        <input [(ngModel)]="nombreParalelo" placeholder="Ej. Paralelo A">
+      </div>
+
+      <!-- Aula y Cupos Automatizados -->
+      <div class="campo">
+        <label>Aula Física (Catálogos)</label>
+        <select [(ngModel)]="aulaSeleccionadaId" (change)="alSeleccionarAula()">
+          <option value="">-- Seleccione Aula --</option>
+          <option *ngFor="let aula of aulas" [value]="aula.id">
+            {{ aula.nombre }} (Máx. {{ aula.capacidadMaxima }} alu.)
+          </option>
+        </select>
+      </div>
+
+      <div class="campo">
+        <label>Cupos Maximos (Auto)</label>
+        <input type="number" [(ngModel)]="cupoAuto" placeholder="0">
+        <small class="helper-text">Valor cargado de la capacidad física del aula.</small>
+      </div>
+    </div>
+
+    <div class="acciones-form">
+      <button class="btn-guardar" (click)="guardarParalelo()">Crear Paralelo</button>
+    </div>
+  </div>
+</div>

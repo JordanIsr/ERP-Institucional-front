@@ -1,19 +1,18 @@
 <div class="catalogos-container">
   <div class="panel-header">
     <h2>Catálogos Académicos</h2>
-    <p class="descripcion">Aquí administras la información base del sistema: carreras, asignaturas, docentes y mallas curriculares. Estos catálogos alimentan el flujo de Periodos.</p>
+    <p class="descripcion">Aquí administras la información base del sistema: carreras, asignaturas y docentes. Estos catálogos alimentan el flujo de Periodos.</p>
   </div>
 
   <div class="tabs">
     <button [class.active]="tab === 'carreras'" (click)="cambiarTab('carreras')">Carreras</button>
     <button [class.active]="tab === 'asignaturas'" (click)="cambiarTab('asignaturas')">Asignaturas</button>
     <button [class.active]="tab === 'docentes'" (click)="cambiarTab('docentes')">Docentes</button>
-    <button [class.active]="tab === 'mallas'" (click)="cambiarTab('mallas')">Mallas Curriculares</button>
   </div>
 
   <!-- ===================== TAB CARRERAS ===================== -->
   <div *ngIf="tab === 'carreras'">
-    <p class="descripcion-tab">Registra las carreras que ofrece el instituto. Una carrera no se puede eliminar si ya tiene mallas curriculares creadas — desactívala en su lugar.</p>
+    <p class="descripcion-tab">Registra las carreras que ofrece el instituto. Una carrera no se puede eliminar si ya tiene dependencias asociadas — desactívala en su lugar.</p>
 
     <div class="card">
       <h3>Nueva Carrera</h3>
@@ -56,7 +55,7 @@
 
   <!-- ===================== TAB ASIGNATURAS ===================== -->
   <div *ngIf="tab === 'asignaturas'">
-    <p class="descripcion-tab">Catálogo único de asignaturas. Aquí es donde debes corregir el nombre si escribiste mal una materia — el cambio se refleja automáticamente en todas las mallas donde esa asignatura esté siendo usada.</p>
+    <p class="descripcion-tab">Catálogo único de asignaturas. Los cambios en el nombre o configuración se aplicarán globalmente en el sistema.</p>
 
     <div class="card">
       <h3>Nueva Asignatura</h3>
@@ -141,80 +140,4 @@
       </div>
     </div>
   </div>
-
-<!-- ===================== TAB MALLAS ===================== -->
-  <div *ngIf="tab === 'mallas'">
-    <p class="descripcion-tab">Selecciona una carrera. Cada malla es una tarjeta: haz clic en su nombre para desplegar sus niveles, y clic en un nivel para desplegar sus asignaturas.</p>
-
-    <div class="card">
-      <div class="campo">
-        <label>Carrera</label>
-        <select [(ngModel)]="carreraSeleccionadaId" (change)="onCarreraSeleccionada()">
-          <option value="">-- Selecciona una carrera --</option>
-          <option *ngFor="let c of carreras" [value]="c.id">{{ c.nombre }} ({{ c.codigo }})</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="card" *ngIf="carreraSeleccionadaId">
-      <h3>¿Prefieres crear la malla completa de una sola vez?</h3>
-      <a routerLink="/crear-malla-rapida" class="btn-chip">✨ Usar Asistente Rápido</a>
-    </div>
-
-    <div *ngIf="carreraSeleccionadaId">
-
-      <!-- FORMULARIO NUEVA MALLA -->
-      <div class="card">
-        <h3>Nueva Versión de Malla</h3>
-        <div class="fila-form">
-          <div class="campo"><label>Nombre</label><input [(ngModel)]="nuevaMalla.nombre" placeholder="Ej. Malla 2026"></div>
-          <div class="campo"><label>Versión</label><input [(ngModel)]="nuevaMalla.version" placeholder="Ej. 2026"></div>
-          <div class="campo"><label>Vigencia desde</label><input type="date" [(ngModel)]="nuevaMalla.fechaVigenciaInicio"></div>
-          <div class="campo">
-            <label>Estado inicial</label>
-            <select [(ngModel)]="nuevaMalla.estado">
-              <option value="PROXIMA">PRÓXIMA</option>
-              <option value="ACTIVA">ACTIVA</option>
-            </select>
-          </div>
-          <button class="btn btn-crear" (click)="crearMalla()">Crear</button>
-        </div>
-      </div>
-
-      <!-- LISTA/ACORDEÓN DE MALLAS -->
-      <div class="acordeon-item" *ngFor="let m of versionesMalla">
-
-  <!-- CABECERA CON EL FORMATO EXACTO DE LA TARJETA -->
-  <div class="tarjeta acordeon-cabecera" (click)="toggleMalla(m.id)">
-    <div class="tarjeta-info">
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <span class="flecha" [class.abierta]="mallaExpandidaId === m.id">▸</span>
-        <strong>{{ m.nombre }} <span style="font-weight: 400; color: #64748b;">(v{{ m.version }})</span></strong>
-      </div>
-      <span>Desde {{ m.fechaVigenciaInicio }}<ng-container *ngIf="m.fechaVigenciaFin"> hasta {{ m.fechaVigenciaFin }}</ng-container></span>
-    </div>
-
-    <span class="badge-estado" [ngClass]="m.estado?.toLowerCase()">{{ m.estado }}</span>
-
-    <div class="tarjeta-acciones" (click)="$event.stopPropagation()">
-      <button class="btn-chip" *ngIf="m.estado !== 'ACTIVA'" (click)="activarMalla(m.id)">Activar</button>
-      <button class="btn-icono" (click)="activarEdicionMalla(m)" title="Editar">✏️</button>
-      <button class="btn-icono btn-eliminar" (click)="eliminarMalla(m)" title="Eliminar">🗑️</button>
-    </div>
-  </div>
-
-  <!-- EDICIÓN INLINE -->
-  <div class="edicion-inline acordeon-edicion" *ngIf="editandoMallaId === m.id" (click)="$event.stopPropagation()">
-    <input [(ngModel)]="mallaEdit.nombre" placeholder="Nombre">
-    <input [(ngModel)]="mallaEdit.version" placeholder="Versión">
-    <input type="date" [(ngModel)]="mallaEdit.fechaVigenciaInicio">
-    <button class="btn btn-guardar" (click)="guardarEdicionMalla(m.id)">Guardar</button>
-    <button class="btn btn-cancelar" (click)="editandoMallaId = ''">Cancelar</button>
-  </div>
-
-  <!-- CUERPO EXPANDIBLE -->
-  <div class="acordeon-cuerpo" *ngIf="mallaExpandidaId === m.id">
-    <!-- Contenido de niveles -->
-  </div>
-
 </div>

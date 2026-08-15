@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { CrearMallaRapida } from './crear-malla-rapida';
+import { ParalelosHorarios } from './paralelos-horarios';
 
-describe('CrearMallaRapida', () => {
-  let component: CrearMallaRapida;
-  let fixture: ComponentFixture<CrearMallaRapida>;
+describe('ParalelosHorarios', () => {
+  let component: ParalelosHorarios;
+  let fixture: ComponentFixture<ParalelosHorarios>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CrearMallaRapida]
+      imports: [ParalelosHorarios]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(CrearMallaRapida);
+    fixture = TestBed.createComponent(ParalelosHorarios);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

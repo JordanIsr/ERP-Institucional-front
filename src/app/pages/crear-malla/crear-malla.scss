@@ -1,0 +1,137 @@
+.malla-container {
+  padding: 1.5rem;
+  background-color: #f8fafc;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, sans-serif;
+
+  .header-acciones {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+
+    h2 {
+      margin: 0;
+      color: #0f172a;
+      font-size: 1.4rem;
+    }
+
+    .btn-guardar {
+      background-color: #059669;
+      color: #ffffff;
+      padding: 0.6rem 1.25rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      &:hover { background-color: #047857; }
+    }
+  }
+
+  .card-config {
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+    background: #ffffff;
+    padding: 1.25rem;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 1.5rem;
+
+    .campo {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      flex: 1;
+
+      label { font-size: 0.85rem; font-weight: 600; color: #475569; }
+      select, input {
+        padding: 0.55rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        outline: none;
+      }
+    }
+
+    .btn-secundario {
+      background-color: #e0f2fe;
+      color: #0369a1;
+      border: 1px solid #bae6fd;
+      padding: 0.6rem 1rem;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      &:hover { background-color: #bae6fd; }
+    }
+  }
+
+  .grid-niveles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+
+    .card-nivel {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+
+      .nivel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #f1f5f9;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+
+        h3 { margin: 0; color: #1e293b; font-size: 1rem; }
+        .btn-eliminar-nivel {
+          background: #fee2e2;
+          color: #991b1b;
+          border: none;
+          padding: 0.2rem 0.5rem;
+          border-radius: 4px;
+          font-size: 0.75rem;
+          cursor: pointer;
+        }
+      }
+
+      .materia-fila {
+        display: flex;
+        gap: 0.4rem;
+        margin-bottom: 0.5rem;
+
+        select {
+          flex: 1;
+          padding: 0.45rem;
+          border: 1px solid #cbd5e1;
+          border-radius: 6px;
+          font-size: 0.85rem;
+        }
+
+        .btn-del {
+          background: #f1f5f9;
+          color: #ef4444;
+          border: 1px solid #cbd5e1;
+          border-radius: 6px;
+          width: 30px;
+          cursor: pointer;
+        }
+      }
+
+      .btn-add {
+        margin-top: 0.5rem;
+        background: #f8fafc;
+        border: 1px dashed #94a3b8;
+        color: #334155;
+        padding: 0.4rem;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        &:hover { background: #f1f5f9; }
+      }
+    }
+  }
+}

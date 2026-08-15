@@ -146,6 +146,19 @@ export class EstructuraAcademicaService {
     return this.http.post(`${this.apiUrl}/paralelos`, data, { headers: this.headers() });
   }
 
+  // ---------- Horarios ----------
+  crearHorario(data: any): Observable<any> {
+  return this.http.post(`${this.apiUrl}/horarios`, data, { headers: this.headers() });
+  }
+
+  listarHorariosPorParalelo(paraleloId: string): Observable<any> {
+  return this.http.get(`${this.apiUrl}/horarios/por-paralelo?paraleloId=${paraleloId}`, { headers: this.headers() });
+  }
+
+  eliminarHorario(id: string): Observable<any> {
+  return this.http.delete(`${this.apiUrl}/horarios/${id}`, { headers: this.headers() });
+  }
+
   // ---------- ASIGNATURA-PARALELO ----------
   listarAsignaturaParalelo(paraleloId: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/asignatura-paralelo?paraleloId=${paraleloId}`, { headers: this.headers() });

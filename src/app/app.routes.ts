@@ -12,9 +12,10 @@ import { HistorialAcademico } from './pages/historial-academico/historial-academ
 import { GestionAcademica } from './pages/gestion-academica/gestion-academica';
 import { ComprobantesPendientes } from './pages/comprobantes-pendientes/comprobantes-pendientes';
 import { PeriodosFlujo } from './pages/periodos-flujo/periodos-flujo';
-import { CrearMallaRapida } from './pages/crear-malla-rapida/crear-malla-rapida';
 import { Catalogos } from './pages/catalogos/catalogos';
-import { CarreraDetalle } from './pages/carrera-detalle/carrera-detalle';
+import { EstructuraCurricular } from './pages/estructura-curricular/estructura-curricular';
+import { CrearMalla } from './pages/crear-malla/crear-malla';
+import { ParalelosHorarios } from './pages/paralelos-horarios/paralelos-horarios';
 
 export const routes: Routes = [
   // 1. Redirigir la ruta raíz por defecto al login (o al dashboard, si el guard lo permite)
@@ -91,13 +92,25 @@ export const routes: Routes = [
 },
 
 {
-  path: 'carrera-detalle',
-  component: CarreraDetalle,
+  path: 'estructura-curricular',
+  component: EstructuraCurricular,
   canActivate: [authGuard],
-  data: { roles: ['admin'] },
+  data: {roles: ['admin']},
 },
 
-{ path: 'crear-malla-rapida', component: CrearMallaRapida, canActivate: [authGuard], data: { roles: ['admin'] } },
+{
+  path: 'crear-malla',
+  component: CrearMalla,
+  canActivate:[authGuard],
+  data: {roles:['admin']},
+},
+
+{
+  path: 'paralelos-horarios',
+  component:ParalelosHorarios,
+  canActivate: [authGuard],
+  data: {roles:['admin']},
+},
 
 { path: 'catalogos', component: Catalogos, canActivate: [authGuard], data: {roles: ['admin']}},
 

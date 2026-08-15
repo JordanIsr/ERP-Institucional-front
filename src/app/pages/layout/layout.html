@@ -46,15 +46,19 @@
   </li>
 
   <li routerLinkActive="active" *ngIf="esAdmin">
-    <a routerLink="/carrera-detalle"><i class="icon">📚</i> Detalles</a>
+    <a routerLink="/crear-malla">crear malla</a>
   </li>
 
-  <li routerLinkActive="active" *ngIf="esAdmin()">
-    <a routerLink="/crear-malla-rapida"><i class="icon"></i>Crear Mallas</a>
+  <li routerLinkActive="active" *ngIf="esAdmin">
+    <a routerLink="/estructura-curricular">Estructura Curricular</a>
   </li>
 
   <li routerLinkActive="active" *ngIf="esAdmin()">
     <a routerLink="/periodos-flujo"><i class="icon">🏛️</i> Periodos</a>
+  </li>
+
+  <li routerLinkActive="active" *ngIf="esAdmin()">
+    <a routerLink="/paralelos-horarios">Horarios</a>
   </li>
 
   <li routerLinkActive="active" *ngIf="esAdminOSecretariaOEstudianteOUsuario">
