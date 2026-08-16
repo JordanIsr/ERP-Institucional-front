@@ -13,11 +13,24 @@ export class Layout {
   usuarioLogueado: string = localStorage.getItem('user_nombre') ?? 'Usuario';
   rolUsuario: string = localStorage.getItem('user_role') ?? '';
   matriculasAbierto = false;
+  academicoAbierto = false;
 
   constructor(private router: Router) {}
 
   esAdmin(): boolean {
     return this.rolUsuario === 'admin';
+  }
+
+  esDocente(): boolean {
+    return this.rolUsuario === 'docente';
+  }
+
+  esEstudiante(): boolean {
+    return this.rolUsuario === 'estudiante';
+  }
+
+  esUsuario(): boolean {
+    return this.rolUsuario === 'usuario';
   }
 
   esAdminOSecretariaOEstudianteOUsuario(): boolean {
@@ -42,6 +55,10 @@ export class Layout {
 
   toggleMatriculas() {
     this.matriculasAbierto = !this.matriculasAbierto;
+  }
+
+  toggleAcademico() {
+    this.academicoAbierto = !this.academicoAbierto;
   }
 
   logout() {

@@ -1,4 +1,4 @@
-  <div class="erp-layout">
+<div class="erp-layout">
 
     <aside class="sidebar">
       <div class="sidebar-logo">
@@ -7,61 +7,71 @@
   </div>
       <nav class="sidebar-menu">
         <ul>
-          <li routerLinkActive="active" *ngIf="esAdminOSecretariaOEstudianteOUsuario">
-    <a routerLink="/dashboard"><i class="icon">📊</i> Dashboard</a>
+          <li routerLinkActive="active" *ngIf="!esUsuario()">
+    <a routerLink="/dashboard"><i class="icon">📊</i> Panel</a>
   </li>
 
   <li routerLinkActive="active" *ngIf="esAdmin()">
     <a routerLink="/users"><i class="icon">👥</i> Usuarios</a>
   </li>
 
-  <li routerLinkActive="active" *ngIf="esAdmin()">
-    <a routerLink="/comprobantes-pendientes"><i class="icon">📄</i> Comprobantes Pendientes</a>
+  <li class="has-submenu" *ngIf="esAdmin() || esSecretaria()">
+    <a (click)="toggleAcademico()" class="menu-parent">
+      <i class="icon">⚙️</i> Gestión Académica
+      <i class="icon-arrow" [class.rotated]="academicoAbierto">▾</i>
+    </a>
+    <ul class="submenu" *ngIf="academicoAbierto">
+      <li routerLinkActive="active">
+        <a routerLink="/periodos-flujo">Periodos</a>
+      </li>
+      <li routerLinkActive="active">
+        <a routerLink="/catalogos">Catálogos</a>
+      </li>
+      <li routerLinkActive="active">
+        <a routerLink="/crear-malla">Mallas</a>
+      </li>
+      <li routerLinkActive="active">
+        <a routerLink="/estructura-curricular">Estructura Curricular</a>
+      </li>
+      <li routerLinkActive="active">
+        <a routerLink="/paralelos-horarios">Paralelos</a>
+      </li>
+    </ul>
   </li>
 
-  <li class="has-submenu" *ngIf="esSecretaria()">
+  <li class="has-submenu" *ngIf="esAdmin() || esSecretaria() || esEstudiante()">
     <a (click)="toggleMatriculas()" class="menu-parent">
       <i class="icon">📝</i> Matrículas
       <i class="icon-arrow" [class.rotated]="matriculasAbierto">▾</i>
     </a>
     <ul class="submenu" *ngIf="matriculasAbierto">
-      <li routerLinkActive="active">
-        <a routerLink="/matriculas/registrar">Matricular Estudiante</a>
+      <li routerLinkActive="active" *ngIf="esEstudiante()">
+        <a routerLink="/matriculas/solicitud">Solicitud de Matrícula</a>
       </li>
-      <li routerLinkActive="active">
+      <li routerLinkActive="active" *ngIf="esEstudiante()">
+        <a routerLink="/matriculas/mi-matricula">Mi Matrícula</a>
+      </li>
+      <li routerLinkActive="active" *ngIf="esEstudiante()">
+        <a routerLink="/matriculas/mi-horario">Mi Horario</a>
+      </li>
+      <li routerLinkActive="active" *ngIf="esAdmin() || esSecretaria()">
         <a routerLink="/matriculas/buscar-estudiantes">Buscar Estudiantes</a>
+      </li>
+      <li routerLinkActive="active" *ngIf="esAdmin() || esSecretaria()">
+        <a routerLink="/matriculas/solicitudes">Solicitudes Pendientes</a>
       </li>
     </ul>
   </li>
 
-  <li routerLinkActive="active" *ngIf="esAdminOSecretariaOEstudiante()">
-    <a routerLink="/historial-academico">Historial Académico</a>
-  </li>
-  <li routerLinkActive="active" *ngIf="esAdminOSecretariaOEstudianteOUsuario">
-    <a routerLink="/gestion-academica"><i class="icon">⚙️</i> Gestión Académica</a>
+  <li routerLinkActive="active" *ngIf="esDocente()">
+    <a routerLink="/horario-docente"><i class="icon">🗓️</i> Mi Horario</a>
   </li>
 
-  <li routerLinkActive="active" *ngIf="esAdmin">
-    <a routerLink="/catalogos"><i class="icon">📚</i> Catálogos</a>
+  <li routerLinkActive="active" *ngIf="esDocente()">
+    <a routerLink="/registro-notas"><i class="icon">✅</i> Registro de Notas</a>
   </li>
 
-  <li routerLinkActive="active" *ngIf="esAdmin">
-    <a routerLink="/crear-malla">crear malla</a>
-  </li>
-
-  <li routerLinkActive="active" *ngIf="esAdmin">
-    <a routerLink="/estructura-curricular">Estructura Curricular</a>
-  </li>
-
-  <li routerLinkActive="active" *ngIf="esAdmin()">
-    <a routerLink="/periodos-flujo"><i class="icon">🏛️</i> Periodos</a>
-  </li>
-
-  <li routerLinkActive="active" *ngIf="esAdmin()">
-    <a routerLink="/paralelos-horarios">Horarios</a>
-  </li>
-
-  <li routerLinkActive="active" *ngIf="esAdminOSecretariaOEstudianteOUsuario">
+  <li routerLinkActive="active" *ngIf="!esUsuario()">
     <a routerLink="/settings"><i class="icon">⚙️</i> Configuración</a>
   </li>
         </ul>
