@@ -11,79 +11,228 @@
         <label>Nombre</label>
         <input [(ngModel)]="nuevoPeriodo.nombre" placeholder="Ej. 2026-I">
       </div>
+
       <div class="campo">
         <label>Fecha inicio</label>
         <input type="date" [(ngModel)]="nuevoPeriodo.fechaInicio">
       </div>
+
       <div class="campo">
         <label>Fecha fin</label>
         <input type="date" [(ngModel)]="nuevoPeriodo.fechaFin">
       </div>
-      <button class="btn btn-crear" (click)="crearPeriodo()">Crear Periodo</button>
+
+      <button class="btn btn-crear" (click)="crearPeriodo()">
+        Crear Periodo
+      </button>
     </div>
   </div>
 
   <!-- Panel de Habilitación de Carrera -->
-  <div class="card" *ngIf="periodoSeleccionadoHabilitar" style="border: 2px solid #4f46e5; margin-bottom: 1.5rem;">
-    <h3>Habilitar Carrera para Periodo: {{ periodoSeleccionadoHabilitar.nombre }}</h3>
+  <div
+    class="card"
+    *ngIf="periodoSeleccionadoHabilitar"
+    style="border: 2px solid #4f46e5; margin-bottom: 1.5rem;"
+  >
+    <h3>
+      Habilitar Carrera para Periodo:
+      {{ periodoSeleccionadoHabilitar.nombre }}
+    </h3>
+
     <div class="fila-form">
+
+      <!-- Carrera -->
       <div class="campo">
         <label>Carrera</label>
-        <select [(ngModel)]="carreraIdSeleccionada" (change)="onCarreraChange()">
+
+        <select
+          [(ngModel)]="carreraIdSeleccionada"
+          (change)="onCarreraChange()"
+        >
           <option value="">-- Selecciona Carrera --</option>
-          <option *ngFor="let c of carreras" [value]="c.id">{{ c.nombre }}</option>
+
+          <option
+            *ngFor="let c of carreras"
+            [value]="c.id"
+          >
+            {{ c.nombre }}
+          </option>
         </select>
       </div>
 
+      <!-- Malla Curricular -->
       <div class="campo">
         <label>Malla Curricular</label>
-        <select [(ngModel)]="mallaIdSeleccionada" [disabled]="cargandoMallas || mallasDisponibles.length === 0">
+
+        <select
+          [(ngModel)]="mallaIdSeleccionada"
+          [disabled]="cargandoMallas || mallasDisponibles.length === 0"
+        >
           <option value="">-- Selecciona Malla --</option>
-          <option *ngFor="let m of mallasDisponibles" [value]="m.id">{{ m.nombre || m.version }}</option>
+
+          <option
+            *ngFor="let m of mallasDisponibles"
+            [value]="m.id"
+          >
+            {{ m.nombre || m.version }}
+          </option>
         </select>
       </div>
 
-      <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
-        <button class="btn btn-crear" (click)="guardarHabilitacion()">Habilitar</button>
-        <button class="btn" style="background-color: #6b7280; color: white;" (click)="cerrarHabilitacion()">Cancelar</button>
+      <!-- Centro de Estudio -->
+      <div class="campo">
+        <label>Centro de Estudio</label>
+
+        <select [(ngModel)]="centroEstudioIdSeleccionado">
+          <option value="">-- Selecciona Centro --</option>
+
+          <option
+            *ngFor="let c of centrosEstudio"
+            [value]="c.id"
+          >
+            {{ c.nombre }}
+          </option>
+        </select>
       </div>
+
+      <!-- Jornada -->
+      <div class="campo">
+        <label>Jornada</label>
+
+        <select [(ngModel)]="jornadaSeleccionada">
+          <option value="">-- Selecciona Jornada --</option>
+          <option value="MATUTINA">Matutina</option>
+          <option value="VESPERTINA">Vespertina</option>
+          <option value="NOCTURNA">Nocturna</option>
+        </select>
+      </div>
+
+      <!-- Botones -->
+      <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
+        <button
+          class="btn btn-crear"
+          (click)="guardarHabilitacion()"
+        >
+          Habilitar
+        </button>
+
+        <button
+          class="btn"
+          style="background-color: #6b7280; color: white;"
+          (click)="cerrarHabilitacion()"
+        >
+          Cancelar
+        </button>
+      </div>
+
     </div>
   </div>
 
+  <!-- Lista de Periodos -->
   <div class="lista-tarjetas">
-    <div class="sin-datos" *ngIf="periodos.length === 0">Aún no hay periodos creados.</div>
 
-    <div class="tarjeta sin-click" *ngFor="let p of periodos">
-      <ng-container *ngIf="editandoPeriodoId !== p.id; else editandoPeriodo">
+    <div
+      class="sin-datos"
+      *ngIf="periodos.length === 0"
+    >
+      Aún no hay periodos creados.
+    </div>
+
+    <div
+      class="tarjeta sin-click"
+      *ngFor="let p of periodos"
+    >
+
+      <ng-container
+        *ngIf="editandoPeriodoId !== p.id; else editandoPeriodo"
+      >
+
         <div class="tarjeta-info">
           <strong>{{ p.nombre }}</strong>
-          <span>{{ p.fechaInicio }} → {{ p.fechaFin }}</span>
+          <span>
+            {{ p.fechaInicio }} → {{ p.fechaFin }}
+          </span>
         </div>
-        <span class="badge-estado" [ngClass]="p.estado?.toLowerCase()">{{ p.estado }}</span>
-        
+
+        <span
+          class="badge-estado"
+          [ngClass]="p.estado?.toLowerCase()"
+        >
+          {{ p.estado }}
+        </span>
+
         <div class="tarjeta-acciones">
-          <button class="btn" style="background-color: #e0e7ff; color: #4338ca; padding: 0.4rem 0.8rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer;" (click)="abrirHabilitarCarrera(p)">
+
+          <button
+            class="btn"
+            style="background-color: #e0e7ff; color: #4338ca; padding: 0.4rem 0.8rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer;"
+            (click)="abrirHabilitarCarrera(p)"
+          >
             + Habilitar Carrera
           </button>
-          <button class="btn-icono" (click)="activarEdicionPeriodo(p)">✏️</button>
-          <button class="btn-icono btn-eliminar" (click)="eliminarPeriodo(p)">🗑️</button>
+
+          <button
+            class="btn-icono"
+            (click)="activarEdicionPeriodo(p)"
+          >
+            ✏️
+          </button>
+
+          <button
+            class="btn-icono btn-eliminar"
+            (click)="eliminarPeriodo(p)"
+          >
+            🗑️
+          </button>
+
         </div>
+
       </ng-container>
 
+      <!-- Edición del Periodo -->
       <ng-template #editandoPeriodo>
+
         <div class="edicion-inline">
-          <input [(ngModel)]="periodoEdit.nombre" placeholder="Nombre">
-          <input type="date" [(ngModel)]="periodoEdit.fechaInicio">
-          <input type="date" [(ngModel)]="periodoEdit.fechaFin">
+
+          <input
+            [(ngModel)]="periodoEdit.nombre"
+            placeholder="Nombre"
+          >
+
+          <input
+            type="date"
+            [(ngModel)]="periodoEdit.fechaInicio"
+          >
+
+          <input
+            type="date"
+            [(ngModel)]="periodoEdit.fechaFin"
+          >
+
           <select [(ngModel)]="periodoEdit.estado">
             <option value="PLANIFICADO">PLANIFICADO</option>
             <option value="ACTIVO">ACTIVO</option>
             <option value="CERRADO">CERRADO</option>
           </select>
-          <button class="btn btn-guardar" (click)="guardarEdicionPeriodo(p.id)">Guardar</button>
-          <button class="btn btn-cancelar" (click)="cancelarEdicionPeriodo()">Cancelar</button>
+
+          <button
+            class="btn btn-guardar"
+            (click)="guardarEdicionPeriodo(p.id)"
+          >
+            Guardar
+          </button>
+
+          <button
+            class="btn btn-cancelar"
+            (click)="cancelarEdicionPeriodo()"
+          >
+            Cancelar
+          </button>
+
         </div>
+
       </ng-template>
+
     </div>
   </div>
 </div>

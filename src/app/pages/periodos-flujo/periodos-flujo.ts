@@ -19,16 +19,27 @@ export class PeriodosFlujo implements OnInit {
   periodoEdit: any = {};
 
   // Propiedades agregadas para la habilitación
-  carreras: any[] = [];
+carreras: any[] = [];
   mallasDisponibles: any[] = [];
+  centrosEstudio: any[] = [];
   periodoSeleccionadoHabilitar: any = null;
   carreraIdSeleccionada = '';
   mallaIdSeleccionada = '';
+  centroEstudioIdSeleccionado = '';
+  jornadaSeleccionada = '';
   cargandoMallas = false;
 
   ngOnInit(): void {
     this.cargarPeriodos();
     this.cargarCarreras();
+    this.cargarCentrosEstudio();
+  }
+
+  cargarCentrosEstudio(): void {
+    this.service.listarCentrosEstudio().subscribe({
+      next: (data: any) => (this.centrosEstudio = data),
+      error: (err: any) => console.error(err),
+    });
   }
 
   cargarPeriodos(): void {
@@ -60,10 +71,12 @@ export class PeriodosFlujo implements OnInit {
   }
 
   // --- MÉTODOS DE HABILITACIÓN DE CARRERA EN PERIODO ---
-  abrirHabilitarCarrera(periodo: any): void {
+abrirHabilitarCarrera(periodo: any): void {
     this.periodoSeleccionadoHabilitar = periodo;
     this.carreraIdSeleccionada = '';
     this.mallaIdSeleccionada = '';
+    this.centroEstudioIdSeleccionado = '';
+    this.jornadaSeleccionada = '';
     this.mallasDisponibles = [];
   }
 
@@ -89,15 +102,17 @@ onCarreraChange(): void {
   }
 
   guardarHabilitacion(): void {
-    if (!this.carreraIdSeleccionada || !this.mallaIdSeleccionada) {
-      alert('Selecciona una carrera y la malla correspondiente.');
+    if (!this.carreraIdSeleccionada || !this.mallaIdSeleccionada || !this.centroEstudioIdSeleccionado || !this.jornadaSeleccionada) {
+      alert('Selecciona carrera, malla, centro de estudio y jornada.');
       return;
     }
 
     const payload = {
       periodoId: this.periodoSeleccionadoHabilitar.id,
       carreraId: this.carreraIdSeleccionada,
-      versionMallaId: this.mallaIdSeleccionada
+      versionMallaId: this.mallaIdSeleccionada,
+      centroEstudioId: this.centroEstudioIdSeleccionado,
+      jornada: this.jornadaSeleccionada,
     };
 
     this.service.crearPeriodoCarrera(payload).subscribe({

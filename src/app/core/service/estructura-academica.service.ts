@@ -135,6 +135,11 @@ export class EstructuraAcademicaService {
     return this.http.post(`${this.apiUrl}/periodo-carrera`, data, { headers: this.headers() });
   }
 
+  // ---------- CENTROS DE ESTUDIO ----------
+  listarCentrosEstudio(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/centros-estudio`, { headers: this.headers() });
+  }
+  
   // ---------- PARALELOS ----------
   listarParalelos(periodoCarreraId?: string): Observable<any> {
     const url = periodoCarreraId
