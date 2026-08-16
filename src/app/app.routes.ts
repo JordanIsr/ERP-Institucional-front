@@ -48,7 +48,7 @@ export const routes: Routes = [
   path: 'comprobantes-pendientes',
   component: ComprobantesPendientes,
   canActivate: [authGuard],
-  data: { roles: ['admin'] }
+  data: { roles: ['admin', 'secretaria'] }
 },
 
 {
@@ -88,31 +88,31 @@ export const routes: Routes = [
   path: 'periodos-flujo',
   component: PeriodosFlujo,
   canActivate: [authGuard],
-  data: { roles: ['admin'] },
+  data: { roles: ['admin', 'secretaria'] },
 },
 
 {
   path: 'estructura-curricular',
   component: EstructuraCurricular,
   canActivate: [authGuard],
-  data: {roles: ['admin']},
+  data: {roles: ['admin', 'secretaria']},
 },
 
 {
   path: 'crear-malla',
   component: CrearMalla,
   canActivate:[authGuard],
-  data: {roles:['admin']},
+  data: {roles:['admin', 'secretaria']},
 },
 
 {
   path: 'paralelos-horarios',
   component:ParalelosHorarios,
   canActivate: [authGuard],
-  data: {roles:['admin']},
+  data: {roles:['admin', 'secretaria']},
 },
 
-{ path: 'catalogos', component: Catalogos, canActivate: [authGuard], data: {roles: ['admin']}},
+{ path: 'catalogos', component: Catalogos, canActivate: [authGuard], data: {roles: ['admin', 'secretaria']}},
 
   ]
 
