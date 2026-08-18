@@ -1,28 +1,138 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import {
+  HttpClient,
+  HttpHeaders,
+} from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+export interface Estudiante {
+  id: string;
+  cedula: string;
+  nombres: string;
+  apellidos: string;
+  correo: string;
+  telefono?: string;
+}
+
+export interface CrearEstudiante {
+  cedula: string;
+  nombres: string;
+  apellidos: string;
+  correo: string;
+  telefono?: string;
+}
+
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class EstudiantesService {
+
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:3000/api/estudiantes'; 
 
-  // ✅ Asegúrate de que este nombre esté bien escrito:
-  matricularEstudiante(datos: any): Observable<any> {
-    return this.http.post(this.apiUrl, datos);
+  private apiUrl =
+    'http://localhost:3000/api/estudiantes';
+
+  private headers(): HttpHeaders {
+
+    const token =
+      localStorage.getItem('auth_token') ??
+      localStorage.getItem('token');
+
+    return new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
   }
 
-  obtenerEstudiantes(): Observable<any> {
-    return this.http.get(this.apiUrl);
+
+  // ==============================
+  // CREAR
+  // ==============================
+
+  crearEstudiante(
+    estudiante: CrearEstudiante,
+  ): Observable<Estudiante> {
+
+    return this.http.post<Estudiante>(
+      this.apiUrl,
+      estudiante,
+      {
+        headers: this.headers(),
+      },
+    );
   }
 
-  actualizarEstudiante(id: string, datos: any): Observable<any> {
-    return this.http.patch(`${this.apiUrl}/${id}`, datos);
+
+  // ==============================
+  // LISTAR
+  // ==============================
+
+  obtenerEstudiantes(): Observable<Estudiante[]> {
+
+    return this.http.get<Estudiante[]>(
+      this.apiUrl,
+      {
+        headers: this.headers(),
+      },
+    );
   }
 
-  eliminarEstudiante(id: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+
+  listarEstudiantes(): Observable<Estudiante[]> {
+
+    return this.obtenerEstudiantes();
   }
+
+
+  // ==============================
+  // OBTENER UNO
+  // ==============================
+
+  obtenerEstudiante(
+    id: string,
+  ): Observable<Estudiante> {
+
+    return this.http.get<Estudiante>(
+      `${this.apiUrl}/${id}`,
+      {
+        headers: this.headers(),
+      },
+    );
+  }
+
+
+  // ==============================
+  // ACTUALIZAR DATOS PERSONALES
+  // ==============================
+
+  actualizarEstudiante(
+    id: string,
+    estudiante: Partial<CrearEstudiante>,
+  ): Observable<Estudiante> {
+
+    return this.http.patch<Estudiante>(
+      `${this.apiUrl}/${id}`,
+      estudiante,
+      {
+        headers: this.headers(),
+      },
+    );
+  }
+
+
+  // ==============================
+  // ELIMINAR
+  // ==============================
+
+  eliminarEstudiante(
+    id: string,
+  ): Observable<any> {
+
+    return this.http.delete(
+      `${this.apiUrl}/${id}`,
+      {
+        headers: this.headers(),
+      },
+    );
+  }
+
 }

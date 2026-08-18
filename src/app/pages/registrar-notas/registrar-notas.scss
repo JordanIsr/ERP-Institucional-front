@@ -1,0 +1,116 @@
+.registro-notas-container {
+  padding: 24px;
+
+  .filter-card {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    margin-bottom: 24px;
+
+    .filter-grid {
+      display: flex;
+      gap: 16px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-width: 180px;
+
+        label {
+          font-weight: 600;
+          margin-bottom: 6px;
+          color: #334155;
+        }
+
+        select {
+          padding: 8px 12px;
+          border: 1px solid #cbd5e1;
+          border-radius: 6px;
+          outline: none;
+        }
+      }
+
+      .btn-container {
+        flex: 0 0 auto;
+      }
+
+      .btn-filtrar {
+        background-color: #0284c7;
+        color: white;
+        padding: 9px 18px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        &:hover { background-color: #0369a1; }
+      }
+    }
+  }
+
+  .tabla-notas {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+    th, td {
+      padding: 12px 10px;
+      text-align: left;
+      font-size: 0.9rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    th {
+      background-color: #1e293b;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .nombre-completo { font-weight: 600; color: #0f172a; }
+
+    .input-nota {
+      width: 65px;
+      padding: 6px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      text-align: center;
+    }
+
+    .promedio {
+      font-weight: 700;
+      &.aprobado { color: #16a34a; }
+      &.reprobado { color: #dc2626; }
+    }
+  }
+
+  .action-bar {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+
+    .btn-guardar {
+      background-color: #16a34a;
+      color: white;
+      padding: 10px 24px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      &:hover { background-color: #15803d; }
+    }
+  }
+
+  .no-results {
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    text-align: center;
+    color: #64748b;
+  }
+}

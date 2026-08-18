@@ -1,4 +1,4 @@
-import { Routes } from '@angular/router';
+import { ResolveStart, Routes } from '@angular/router';
 import { Login } from './pages/login/login';
 import { Dashboard } from './pages/dashboard/dashboard';
 import { Register } from './pages/register/register';
@@ -11,11 +11,13 @@ import { BuscarEstudiantes } from './pages/matriculas/buscar-estudiantes/buscar-
 import { HistorialAcademico } from './pages/historial-academico/historial-academico';
 import { GestionAcademica } from './pages/gestion-academica/gestion-academica';
 import { ComprobantesPendientes } from './pages/comprobantes-pendientes/comprobantes-pendientes';
-import { PeriodosFlujo } from './pages/periodos-flujo/periodos-flujo';
+import { PeriodosFlujo } from './pages/oferta-academica/periodos-flujo/periodos-flujo';
 import { Catalogos } from './pages/catalogos/catalogos';
 import { EstructuraCurricular } from './pages/estructura-curricular/estructura-curricular';
 import { CrearMalla } from './pages/crear-malla/crear-malla';
-import { ParalelosHorarios } from './pages/paralelos-horarios/paralelos-horarios';
+import { ParalelosHorarios } from './pages/oferta-academica/paralelos-horarios/paralelos-horarios';
+import { SolicitudesMatriculas } from './pages/matriculas/solicitudes-matriculas/solicitudes-matriculas';
+import { RegistarNotas } from './pages/registrar-notas/registrar-notas';
 
 export const routes: Routes = [
   // 1. Redirigir la ruta raíz por defecto al login (o al dashboard, si el guard lo permite)
@@ -64,6 +66,12 @@ export const routes: Routes = [
   data: { roles: ['admin', 'secretaria', 'docente'] }
 },
 {
+  path: 'matriculas/solicitudes',
+  component: SolicitudesMatriculas,
+  canActivate: [authGuard],
+  data: { roles:['secretaria']}
+},
+{
   path: 'historial-academico',
   component: HistorialAcademico,
   canActivate: [authGuard],
@@ -88,28 +96,35 @@ export const routes: Routes = [
   path: 'periodos-flujo',
   component: PeriodosFlujo,
   canActivate: [authGuard],
-  data: { roles: ['admin', 'secretaria'] },
+  data: { roles: ['admin', 'secretaria'] }
 },
 
 {
   path: 'estructura-curricular',
   component: EstructuraCurricular,
   canActivate: [authGuard],
-  data: {roles: ['admin', 'secretaria']},
+  data: {roles: ['admin', 'secretaria']}
 },
 
 {
   path: 'crear-malla',
   component: CrearMalla,
   canActivate:[authGuard],
-  data: {roles:['admin', 'secretaria']},
+  data: {roles:['admin', 'secretaria']}
 },
 
 {
   path: 'paralelos-horarios',
-  component:ParalelosHorarios,
+  component: ParalelosHorarios,
   canActivate: [authGuard],
-  data: {roles:['admin', 'secretaria']},
+  data: {roles:['admin', 'secretaria']}
+},
+
+{
+  path: 'registrar-notas',
+  component: RegistarNotas,
+  canActivate: [authGuard],
+  data: {roles:['docente']}
 },
 
 { path: 'catalogos', component: Catalogos, canActivate: [authGuard], data: {roles: ['admin', 'secretaria']}},

@@ -1,0 +1,329 @@
+<div class="registro-notas-container">
+
+  <div class="header-section">
+
+    <h2>Registro de Calificaciones</h2>
+
+    <p>
+      Filtrar estudiantes matriculados para ingresar notas
+    </p>
+
+  </div>
+
+
+  <!-- ========================= -->
+  <!-- FILTROS -->
+  <!-- ========================= -->
+
+  <div class="filter-card">
+
+    <div class="filter-grid">
+
+
+      <!-- CARRERA -->
+
+      <div class="form-group">
+
+        <label for="carrera">
+          Carrera:
+        </label>
+
+        <select
+          id="carrera"
+          [(ngModel)]="carreraFiltro"
+          (change)="cambioCarrera()"
+        >
+
+          <option value="">
+            -- Todas --
+          </option>
+
+          <option
+            *ngFor="let carrera of carreras"
+            [value]="carrera.id"
+          >
+            {{ carrera.nombre }}
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <!-- PERIODO -->
+
+      <div class="form-group">
+
+        <label for="periodo">
+          Periodo académico:
+        </label>
+
+        <select
+          id="periodo"
+          [(ngModel)]="periodoFiltro"
+          (change)="cambioPeriodo()"
+        >
+
+          <option value="">
+            -- Todos --
+          </option>
+
+          <option
+            *ngFor="let periodo of periodos"
+            [value]="periodo.id"
+          >
+            {{ periodo.nombre }}
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <!-- PARALELO -->
+
+      <div class="form-group">
+
+        <label for="paralelo">
+          Paralelo:
+        </label>
+
+        <select
+          id="paralelo"
+          [(ngModel)]="paraleloFiltro"
+          [disabled]="paralelos.length === 0"
+        >
+
+          <option value="">
+            -- Todos --
+          </option>
+
+          <option
+            *ngFor="let paralelo of paralelos"
+            [value]="paralelo.id"
+          >
+            {{ paralelo.nombre }}
+            -
+            {{ paralelo.nivel.nombre || 'Nivel ' + paralelo.nivel.numero }}
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <!-- BOTÓN -->
+
+      <div class="form-group btn-container">
+
+        <button
+          type="button"
+          class="btn-filtrar"
+          (click)="buscarEstudiantes()"
+        >
+          🔍 Buscar Estudiantes
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ========================= -->
+  <!-- RESULTADOS -->
+  <!-- ========================= -->
+
+  <div
+    class="table-responsive"
+    *ngIf="estudiantes.length > 0"
+  >
+
+    <table class="tabla-notas">
+
+      <thead>
+
+        <tr>
+
+          <th>Nombres</th>
+
+          <th>Cédula</th>
+
+          <th>Carrera</th>
+
+          <th>Periodo</th>
+
+          <th>Nivel</th>
+
+          <th>Paralelo</th>
+
+          <th>Jornada</th>
+
+          <th>N1P</th>
+
+          <th>N2P</th>
+
+          <th>Recuperación</th>
+
+          <th>Promedio</th>
+
+        </tr>
+
+      </thead>
+
+
+      <tbody>
+
+        <tr
+          *ngFor="let estudiante of estudiantes"
+        >
+
+          <td class="nombre-completo">
+
+            {{ estudiante.nombres }}
+            {{ estudiante.apellidos }}
+
+          </td>
+
+
+          <td>
+
+            {{ estudiante.cedula }}
+
+          </td>
+
+
+          <td>
+
+            {{ estudiante.carrera }}
+
+          </td>
+
+
+          <td>
+
+            {{ estudiante.periodo }}
+
+          </td>
+
+
+          <td>
+
+            {{ estudiante.nivel }}
+
+          </td>
+
+
+          <td>
+
+            {{ estudiante.paralelo }}
+
+          </td>
+
+
+          <td>
+
+            {{ estudiante.jornada }}
+
+          </td>
+
+
+          <td>
+
+            <input
+              type="number"
+              [(ngModel)]="estudiante.n1p"
+              (ngModelChange)="calcularPromedio(estudiante)"
+              min="0"
+              max="10"
+              step="0.1"
+              class="input-nota"
+            />
+
+          </td>
+
+
+          <td>
+
+            <input
+              type="number"
+              [(ngModel)]="estudiante.n2p"
+              (ngModelChange)="calcularPromedio(estudiante)"
+              min="0"
+              max="10"
+              step="0.1"
+              class="input-nota"
+            />
+
+          </td>
+
+
+          <td>
+
+            <input
+              type="number"
+              [(ngModel)]="estudiante.recuperacion"
+              (ngModelChange)="calcularPromedio(estudiante)"
+              min="0"
+              max="10"
+              step="0.1"
+              class="input-nota"
+            />
+
+          </td>
+
+
+          <td
+            class="promedio"
+            [class.aprobado]="estudiante.promedio >= 7"
+            [class.reprobado]="estudiante.promedio < 7"
+          >
+
+            {{ estudiante.promedio | number:'1.2-2' }}
+
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+
+    <!-- GUARDAR -->
+
+    <div class="action-bar">
+
+      <button
+        type="button"
+        class="btn-guardar"
+        (click)="guardarNotas()"
+      >
+
+        Guardar Calificaciones
+
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- ========================= -->
+  <!-- SIN RESULTADOS -->
+  <!-- ========================= -->
+
+  <div
+    *ngIf="busquedaRealizada && estudiantes.length === 0"
+    class="no-results"
+  >
+
+    <p>
+      No se encontraron estudiantes matriculados
+      con los filtros seleccionados.
+    </p>
+
+  </div>
+
+</div>

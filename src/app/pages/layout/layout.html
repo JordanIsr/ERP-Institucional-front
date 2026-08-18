@@ -54,6 +54,9 @@
       <li routerLinkActive="active" *ngIf="esEstudiante()">
         <a routerLink="/matriculas/mi-horario">Mi Horario</a>
       </li>
+      <li routerLinkActive="active" *ngIf="esSecretaria()">
+        <a routerLink="/matriculas/registrar">Matricular</a>
+      </li>
       <li routerLinkActive="active" *ngIf="esAdmin() || esSecretaria()">
         <a routerLink="/matriculas/buscar-estudiantes">Buscar Estudiantes</a>
       </li>
@@ -68,7 +71,7 @@
   </li>
 
   <li routerLinkActive="active" *ngIf="esDocente()">
-    <a routerLink="/registro-notas"><i class="icon">✅</i> Registro de Notas</a>
+    <a routerLink="/registrar-notas"><i class="icon">✅</i> Registro de Notas</a>
   </li>
 
   <li routerLinkActive="active" *ngIf="!esUsuario()">
@@ -85,9 +88,10 @@
           <span>Bienvenido</span>
         </div>
         <div class="header-user">
-          <span class="username">{{ usuarioLogueado }}</span>
-          <button (click)="logout()" class="btn-logout">Cerrar Sesión</button>
-        </div>
+  <span class="username">{{ usuarioLogueado }}</span>
+  <span class="user-role">{{ rolUsuario | titlecase }}</span>
+  <button (click)="logout()" class="btn-logout">Cerrar Sesión</button>
+</div>
       </header>
 
       <main class="content">

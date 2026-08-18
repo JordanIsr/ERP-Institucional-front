@@ -49,7 +49,7 @@ export class BuscarEstudiantes {
         this.estudianteSeleccionado = null;
         this.modoEdicion = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error(err);
         alert('Error al buscar estudiantes.');
       }
@@ -98,31 +98,11 @@ export class BuscarEstudiantes {
       });
   }
 
-  anular(): void {
-    if (!this.estudianteSeleccionado?.id) {
-      alert('No se pudo identificar el estudiante a anular.');
-      return;
-    }
-
-    const confirmar = confirm(
-      `¿Seguro que deseas anular la matrícula de ${this.estudianteSeleccionado.nombres}?`
-    );
-    if (!confirmar) return;
-
-    this.estudiantesService
-      .actualizarEstudiante(this.estudianteSeleccionado.id, { estado: 'ANULADA' })
-      .subscribe({
-        next: (): void => {
-          alert('Matrícula anulada ✅');
-          this.estudianteSeleccionado.estado = 'ANULADA';
-          this.buscar();
-        },
-        error: (err: any) => {
-          console.error(err);
-          alert('Error al anular la matrícula.');
-        }
-      });
-  }
+  anularEstudiante() {
+  alert(
+    'La anulación de matrícula se gestionará desde las solicitudes de matrícula.'
+  );
+}
 
   seleccionarArchivo(event: Event): void {
     const input = event.target as HTMLInputElement;

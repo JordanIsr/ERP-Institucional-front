@@ -1,60 +1,227 @@
-import { Component, inject } from '@angular/core'; // Asegúrate de importar inject
-import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
-import { EstudiantesService } from './estudiantes.service'; // Importa tu servicio del frontend
+import { Component, inject } from '@angular/core';
+import {
+  FormBuilder,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+
+import { EstudiantesService } from './estudiantes.service';
 
 @Component({
   selector: 'app-matriculas',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterModule, ReactiveFormsModule], // Asegúrate de que esté aquí para usar los formularios
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterModule,
+  ],
   templateUrl: './matriculas.html',
-  styleUrls: ['./matriculas.scss']
+  styleUrls: ['./matriculas.scss'],
 })
 export class Matriculas {
+
   private fb = inject(FormBuilder);
-  
-  // 1. ¡ESTO FALTA! Aquí inyectamos el servicio para que deje de salir el error en rojo
-  private estudiantesService = inject(EstudiantesService); 
+  private estudiantesService = inject(EstudiantesService);
+
+  guardando = false;
 
   matriculaForm = this.fb.group({
-    cedula: ['', [Validators.required]],
-    nombres: ['', [Validators.required]],
-    apellidos: ['', [Validators.required]],
-    correo: ['', [Validators.required, Validators.email]],
-    telefono: [''],
-    carrera: ['Sistemas', [Validators.required]],
-    periodo: ['', [Validators.required]],
-    jornada: ['Matutina', [Validators.required]],
-    
-    // 2. Les quitamos el required por ahora para que te deje guardar los datos de texto:
-    estado: ['APROBADA']
+
+    cedula: [
+      '',
+      [
+        Validators.required,
+        Validators.pattern(/^[0-9]{10}$/),
+      ],
+    ],
+
+    nombres: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(2),
+      ],
+    ],
+
+    apellidos: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(2),
+      ],
+    ],
+
+    correo: [
+      '',
+      [
+        Validators.required,
+        Validators.email,
+      ],
+    ],
+
+    telefono: [
+      '',
+      [
+        Validators.pattern(/^[0-9]{10}$/),
+      ],
+    ],
+
   });
 
-  registrar() {
-  Object.keys(this.matriculaForm.controls).forEach(key => {
-    const controlErrors = this.matriculaForm.get(key)?.errors;
-    if (controlErrors != null) {
-      console.log(`❌ El campo [${key}] es inválido debido a:`, controlErrors);
+
+  // ==============================
+  // SOLO NÚMEROS
+  // ==============================
+
+  soloNumeros(event: KeyboardEvent): boolean {
+
+    const charCode =
+      event.which
+        ? event.which
+        : event.keyCode;
+
+    if (
+      charCode > 31 &&
+      (charCode < 48 || charCode > 57)
+    ) {
+
+      event.preventDefault();
+
+      return false;
     }
-  });
 
-  if (this.matriculaForm.valid) {
-    this.estudiantesService.matricularEstudiante(this.matriculaForm.value).subscribe({
-      next: (res: any) => {
-        alert(
-          '¡Estudiante matriculado con éxito! 🎉\n\n' +
-          'Indícale que debe registrarse por su cuenta en el sistema usando su cédula y su correo institucional.'
-        );
-        this.matriculaForm.reset({ carrera: 'Sistemas', jornada: 'Matutina', estado: 'APROBADA' });
-      },
-      error: (err: any) => {
-        alert('Error al guardar en el servidor.');
-        console.error(err);
-      }
-    });
-  } else {
-    alert('Por favor, completa todos los campos requeridos.');
-    this.matriculaForm.markAllAsTouched();
+    return true;
   }
-}
+
+
+  // ==============================
+  // LIMITAR A 10 DÍGITOS
+  // ==============================
+
+  validarLongitud(
+    event: Event,
+    controlName: string,
+  ): void {
+
+    const input =
+      event.target as HTMLInputElement;
+
+    const valorLimpio =
+      input.value
+        .replace(/[^0-9]/g, '')
+        .slice(0, 10);
+
+    input.value = valorLimpio;
+
+    this.matriculaForm
+      .get(controlName)
+      ?.setValue(valorLimpio);
+  }
+
+
+  // ==============================
+  // REGISTRAR
+  // ==============================
+
+  registrar(): void {
+
+    this.matriculaForm.markAllAsTouched();
+
+    if (this.matriculaForm.invalid) {
+
+      alert(
+        'Por favor, revisa los campos del formulario.'
+      );
+
+      return;
+    }
+
+    this.guardando = true;
+
+    const datos = {
+      cedula:
+        this.matriculaForm.value.cedula!,
+
+      nombres:
+        this.matriculaForm.value.nombres!,
+
+      apellidos:
+        this.matriculaForm.value.apellidos!,
+
+      correo:
+        this.matriculaForm.value.correo!,
+
+      telefono:
+        this.matriculaForm.value.telefono || undefined,
+    };
+
+
+    this.estudiantesService
+      .crearEstudiante(datos)
+      .subscribe({
+
+        next: (estudiante) => {
+
+          this.guardando = false;
+
+          alert(
+            `Estudiante registrado correctamente.\n\n` +
+            `Cédula: ${estudiante.cedula}\n` +
+            `Nombre: ${estudiante.nombres} ${estudiante.apellidos}`
+          );
+
+          this.limpiarFormulario();
+
+        },
+
+        error: (error) => {
+
+          this.guardando = false;
+
+          console.error(
+            'Error al registrar estudiante:',
+            error
+          );
+
+          if (error.status === 409) {
+
+            alert(
+              'Ya existe un estudiante registrado con esa cédula.'
+            );
+
+            return;
+          }
+
+          if (error.status === 400) {
+
+            alert(
+              'Los datos enviados no son válidos. Revisa el formulario.'
+            );
+
+            return;
+          }
+
+          alert(
+            'No se pudo registrar el estudiante.'
+          );
+        },
+
+      });
+  }
+
+
+  // ==============================
+  // LIMPIAR
+  // ==============================
+
+  limpiarFormulario(): void {
+
+    this.matriculaForm.reset();
+
+    this.matriculaForm.markAsPristine();
+    this.matriculaForm.markAsUntouched();
+  }
+
 }

@@ -1,8 +1,8 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { EstructuraAcademicaService } from '../../core/service/estructura-academica.service';
-import { ParalelosService, Aula, ParaleloPayload } from '../../core/service/paralelos.service';
+import { EstructuraAcademicaService } from '../../../core/service/estructura-academica.service';
+import { ParalelosService, Aula, ParaleloPayload } from '../../../core/service/paralelos.service';
 
 @Component({
   selector: 'app-paralelos-horarios',

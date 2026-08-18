@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { EstructuraAcademicaService } from '../../core/service/estructura-academica.service';
+import { EstructuraAcademicaService } from '../../../core/service/estructura-academica.service';
 
 @Component({
   selector: 'app-periodos-flujo',

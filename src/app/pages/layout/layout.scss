@@ -152,8 +152,25 @@
   .header-title { color: #8d867f; font-size: 14px; }
 
   .header-user {
-    display: flex; align-items: center; gap: 15px;
-    .username { font-weight: 600; color: #161f38; font-size: 14px; }
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.username {
+  font-weight: 600;
+  color: #333;
+}
+
+.user-role {
+  background-color: #e2e8f0;
+  color: #475569;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
     .btn-logout {
       background-color: #e74c3c;
       color: white; border: none;
@@ -163,7 +180,6 @@
       &:hover { background-color: #c0392b; }
     }
   }
-}
 
 /* --- CONTENIDO INTERNO: único lugar con scroll --- */
 .content {
