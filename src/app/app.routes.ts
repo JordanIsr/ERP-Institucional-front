@@ -127,7 +127,18 @@ export const routes: Routes = [
   data: {roles:['docente']}
 },
 
-{ path: 'catalogos', component: Catalogos, canActivate: [authGuard], data: {roles: ['admin', 'secretaria']}},
+{ path: 'catalogos',
+  component: Catalogos, 
+  canActivate: [authGuard], 
+  data: {roles: ['admin', 'secretaria']}
+},
+
+{
+  path: 'matriculas/solicitudes',
+  component: SolicitudesMatriculas,
+  canActivate: [authGuard],
+  data: {roles: ['estudiante'],}
+},
 
   ]
 
