@@ -169,3 +169,6 @@ textarea.ng-invalid.ng-touched {
     }
   }
 }
+.mensaje-form { padding: 12px 15px; margin-bottom: 16px; border-radius: 8px; }
+.mensaje-form.error { color: #991b1b; background: #fee2e2; }
+.mensaje-form.exito { color: #166534; background: #dcfce7; }

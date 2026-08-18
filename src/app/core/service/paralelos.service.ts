@@ -12,8 +12,8 @@ export interface ParaleloPayload {
   periodoCarreraId: string;
   nivelId: string;
   nombre: string;
-  cupoMaximo?: number;
-  aulaId?: string;
+  cupoMaximo: number;
+  aulaId: string;
 }
 
 @Injectable({

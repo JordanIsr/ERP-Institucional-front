@@ -238,4 +238,23 @@ export class SolicitudesMatriculaService {
       {},
     );
   }
+
+  aprobarDocumento(
+    documentoId: string,
+  ): Observable<DocumentoMatricula> {
+    return this.http.patch<DocumentoMatricula>(
+      `http://localhost:3000/api/documentos-matricula/${documentoId}/aprobar`,
+      {},
+    );
+  }
+
+  rechazarDocumento(
+    documentoId: string,
+    motivo: string,
+  ): Observable<any> {
+    return this.http.patch(
+      `http://localhost:3000/api/documentos-matricula/${documentoId}/rechazar`,
+      { motivo },
+    );
+  }
 }

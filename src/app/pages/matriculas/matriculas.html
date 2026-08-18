@@ -1,9 +1,9 @@
 <div class="matriculas-container">
 
   <div class="matriculas-header">
-    <h2>Registrar Estudiante</h2>
+    <h2>Matricular estudiante nuevo</h2>
     <p>
-      Registra los datos personales del estudiante en el sistema.
+      Crea la ficha y la matrícula oficial de primer nivel en un solo proceso.
     </p>
   </div>
 
@@ -12,6 +12,8 @@
     (ngSubmit)="registrar()"
     class="matriculas-form"
   >
+    <div *ngIf="errorGeneral" class="mensaje-form error">{{ errorGeneral }}</div>
+    <div *ngIf="mensajeExito" class="mensaje-form exito">{{ mensajeExito }}</div>
 
     <!-- ================= INFORMACIÓN PERSONAL ================= -->
 
@@ -180,6 +182,33 @@
     </div>
 
 
+    <div class="form-section">
+      <h3>Información académica inicial</h3>
+      <p *ngIf="cargandoOferta">Cargando oferta académica...</p>
+      <div class="form-grid" *ngIf="!cargandoOferta">
+        <div class="form-group">
+          <label>Periodo, carrera, malla, centro y jornada *</label>
+          <select [(ngModel)]="periodoCarreraId" [ngModelOptions]="{standalone: true}" (change)="cambiarOferta()">
+            <option value="">Selecciona una oferta activa</option>
+            <option *ngFor="let oferta of ofertas" [value]="oferta.id">
+              {{ oferta.periodo?.nombre }} · {{ oferta.carrera?.nombre }} · {{ oferta.versionMalla?.nombre }} · {{ oferta.jornada }} · {{ oferta.centroEstudio?.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Paralelo de primer nivel *</label>
+          <select [(ngModel)]="paraleloId" [ngModelOptions]="{standalone: true}" [disabled]="!periodoCarreraId">
+            <option value="">Selecciona un paralelo</option>
+            <option *ngFor="let paralelo of paralelos" [value]="paralelo.id">
+              {{ paralelo.nombre }} · {{ paralelo.nivel?.nombre }} · cupo máximo {{ paralelo.cupoMaximo }}
+            </option>
+          </select>
+          <small *ngIf="periodoCarreraId && paralelos.length === 0">La oferta todavía no tiene un paralelo de primer nivel configurado.</small>
+        </div>
+      </div>
+    </div>
+
     <!-- ================= INFORMACIÓN ================= -->
 
     <div class="form-section informacion">
@@ -190,10 +219,7 @@
       </h3>
 
       <p>
-        Al registrar al estudiante se crea únicamente su ficha
-        personal. La carrera, periodo, jornada, nivel y paralelo
-        se asignarán posteriormente mediante el proceso de
-        solicitud de matrícula.
+        Este formulario es solamente para estudiantes nuevos. Los estudiantes antiguos envían su solicitud desde su cuenta y Secretaría la aprueba en “Solicitudes pendientes”.
       </p>
 
     </div>
@@ -216,7 +242,7 @@
         class="btn btn-primary"
         [disabled]="guardando"
       >
-        {{ guardando ? 'Registrando...' : 'Registrar Estudiante' }}
+        {{ guardando ? 'Creando matrícula...' : 'Registrar y matricular' }}
       </button>
 
     </div>

@@ -23,6 +23,12 @@ export class CrearMalla implements OnInit {
 
   carreraId = '';
   nombreMalla = '';
+  versionMalla = '';
+  fechaVigenciaInicio = '';
+  guardando = false;
+  mensaje = '';
+  error = '';
+  mallasCarrera: any[] = [];
   
   niveles: NivelMalla[] = [];
 
@@ -31,31 +37,15 @@ export class CrearMalla implements OnInit {
   }
 
   cargarIniciales(): void {
-    // 1. Cargar Carreras
-    const s: any = this.service;
-    
-    if (s.listarCarreras) {
-      s.listarCarreras().subscribe({
+    this.service.listarCarreras().subscribe({
         next: (res: any) => (this.carreras = res),
         error: (e: any) => console.error('Error cargando carreras:', e)
-      });
-    }
+    });
 
-    // 2. Cargar Asignaturas con fallback seguro
-    const obsAsignaturas = s.listarAsignaturasBase 
-      ? s.listarAsignaturasBase() 
-      : s.listarAsignaturas 
-        ? s.listarAsignaturas() 
-        : s.getAsignaturas 
-          ? s.getAsignaturas() 
-          : null;
-
-    if (obsAsignaturas) {
-      obsAsignaturas.subscribe({
+    this.service.listarAsignaturasCatalogo().subscribe({
         next: (res: any) => (this.asignaturasCatalogo = res),
         error: (e: any) => console.error('Error cargando asignaturas:', e)
-      });
-    }
+    });
   }
 
   cargarMallaExistente(): void {
@@ -64,28 +54,14 @@ export class CrearMalla implements OnInit {
       return;
     }
 
-    const s: any = this.service;
-    const obsMalla = s.obtenerMallaPorCarrera 
-      ? s.obtenerMallaPorCarrera(this.carreraId)
-      : s.listarMallaPorCarrera 
-        ? s.listarMallaPorCarrera(this.carreraId)
-        : null;
-
-    if (obsMalla) {
-      obsMalla.subscribe({
-        next: (malla: any) => {
-          if (malla && malla.niveles) {
-            this.nombreMalla = malla.nombre || '';
-            this.niveles = malla.niveles;
-          } else {
-            this.inicializarNivelBase();
-          }
-        },
-        error: () => this.inicializarNivelBase()
-      });
-    } else {
-      this.inicializarNivelBase();
-    }
+    this.nombreMalla = '';
+    this.versionMalla = '';
+    this.fechaVigenciaInicio = '';
+    this.inicializarNivelBase();
+    this.service.listarVersionesMalla(this.carreraId).subscribe({
+      next: (mallas: any[]) => (this.mallasCarrera = mallas),
+      error: () => (this.mallasCarrera = []),
+    });
   }
 
   private inicializarNivelBase(): void {
@@ -111,33 +87,57 @@ export class CrearMalla implements OnInit {
   }
 
   guardarMalla(): void {
-    if (!this.carreraId || !this.nombreMalla) {
-      alert('Seleccione una carrera e ingrese el nombre de la malla.');
+    this.error = '';
+    this.mensaje = '';
+    if (!this.carreraId || !this.nombreMalla || !this.versionMalla || !this.fechaVigenciaInicio) {
+      this.error = 'Selecciona carrera y completa nombre, versión y fecha de vigencia.';
+      return;
+    }
+
+    const nivelesValidos = this.niveles.map((nivel) => {
+      const nombres = nivel.asignaturasIds
+        .filter(Boolean)
+        .map((id) => this.asignaturasCatalogo.find((asignatura) => asignatura.id === id)?.nombre)
+        .filter(Boolean) as string[];
+      return { numero: nivel.numero, asignaturas: [...new Set(nombres)] };
+    });
+
+    if (nivelesValidos.length === 0 || nivelesValidos.some((nivel) => nivel.asignaturas.length === 0)) {
+      this.error = 'Cada nivel debe contener al menos una asignatura.';
       return;
     }
 
     const payload = {
       carreraId: this.carreraId,
       nombre: this.nombreMalla,
-      niveles: this.niveles,
+      version: this.versionMalla,
+      fechaVigenciaInicio: this.fechaVigenciaInicio,
+      niveles: nivelesValidos,
     };
 
-    const s: any = this.service;
-    const obsGuardar = s.guardarEstructuraMalla 
-      ? s.guardarEstructuraMalla(payload)
-      : s.guardarMalla 
-        ? s.guardarMalla(payload)
-        : null;
+    this.guardando = true;
+    this.service.crearMallaRapida(payload).subscribe({
+      next: () => {
+        this.guardando = false;
+        this.mensaje = 'Malla creada como PRÓXIMA. Revísala y actívala para poder ofertarla.';
+        this.cargarMallaExistente();
+      },
+      error: (e: any) => {
+        this.guardando = false;
+        this.error = e?.error?.message ?? 'No se pudo crear la malla.';
+      },
+    });
+  }
 
-    if (obsGuardar) {
-      obsGuardar.subscribe({
-        next: () => alert('Malla curricular guardada con éxito.'),
-        error: (e: any) => console.error('Error al guardar la malla:', e)
-      });
-    } else {
-      console.log('Estructura de malla lista para backend:', payload);
-      alert('Malla procesada localmente.');
-    }
+  activarMalla(malla: any): void {
+    if (!confirm(`¿Activar la malla "${malla.nombre}"? La malla activa anterior quedará histórica.`)) return;
+    this.service.activarVersionMalla(malla.id).subscribe({
+      next: () => {
+        this.mensaje = 'Malla activada correctamente.';
+        this.cargarMallaExistente();
+      },
+      error: (e: any) => (this.error = e?.error?.message ?? 'No se pudo activar la malla.'),
+    });
   }
 
   trackByFn(index: number): number {

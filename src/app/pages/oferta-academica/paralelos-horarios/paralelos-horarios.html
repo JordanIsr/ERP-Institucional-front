@@ -1,5 +1,7 @@
 <div class="paralelos-container">
   <h2>Apertura de Paralelos y Horarios</h2>
+  <p *ngIf="error" style="color:#991b1b;background:#fee2e2;padding:12px;border-radius:8px">{{ error }}</p>
+  <p *ngIf="mensaje" style="color:#166534;background:#dcfce7;padding:12px;border-radius:8px">{{ mensaje }}</p>
 
   <div class="card-formulario">
     <div class="grid-form">
@@ -17,7 +19,7 @@
       <!-- Selección del Nivel/Malla -->
       <div class="campo">
         <label>Nivel de la Malla *</label>
-        <select [(ngModel)]="nivelId">
+        <select [(ngModel)]="nivelId" (change)="alCambiarNivel()">
           <option value="">-- Seleccione Nivel --</option>
           <option *ngFor="let n of nivelesMalla" [value]="n.id">
             {{ n.nombre }}
@@ -51,6 +53,39 @@
 
     <div class="acciones-form">
       <button class="btn-guardar" (click)="guardarParalelo()">Crear Paralelo</button>
+    </div>
+  </div>
+
+  <div class="card-formulario" *ngIf="nivelId">
+    <h3>Asignaturas y docentes del paralelo</h3>
+    <div class="campo">
+      <label>Paralelo a configurar</label>
+      <select [(ngModel)]="paraleloGestionId" (change)="cargarAsignaciones()">
+        <option value="">Selecciona un paralelo</option>
+        <option *ngFor="let paralelo of paralelos" [value]="paralelo.id">{{ paralelo.nombre }}</option>
+      </select>
+    </div>
+
+    <div *ngIf="paraleloGestionId" style="margin-top:18px">
+      <div *ngFor="let detalle of detallesNivel" style="display:grid;grid-template-columns:1fr 260px auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid #e5e7eb">
+        <strong>{{ detalle.asignatura?.codigo }} · {{ detalle.asignatura?.nombre }}</strong>
+        <ng-container *ngIf="!estaAsignada(detalle.id); else yaAsignada">
+          <select [(ngModel)]="docentePorDetalle[detalle.id]">
+            <option value="">Selecciona docente</option>
+            <option *ngFor="let docente of docentes" [value]="docente.id">{{ docente.nombres }} {{ docente.apellidos }}</option>
+          </select>
+          <button class="btn-guardar" (click)="asignarDocente(detalle)">Asignar</button>
+        </ng-container>
+        <ng-template #yaAsignada>
+          <span style="color:#166534">Asignada</span><span></span>
+        </ng-template>
+      </div>
+
+      <h4 *ngIf="asignaturasParalelo.length">Asignaciones actuales</h4>
+      <div *ngFor="let asignacion of asignaturasParalelo" style="display:flex;justify-content:space-between;padding:8px 0">
+        <span>{{ asignacion.detalleMalla?.asignatura?.nombre }} — {{ asignacion.docente?.nombres }} {{ asignacion.docente?.apellidos }}</span>
+        <button (click)="quitarAsignacion(asignacion)" style="background:#dc2626;color:#fff;border:0;border-radius:6px;padding:6px 10px">Quitar</button>
+      </div>
     </div>
   </div>
 </div>

@@ -91,7 +91,7 @@ onCarreraChange(): void {
   // Usa directamente el método definido en tu EstructuraAcademicaService
   this.service.listarVersionesMalla(this.carreraIdSeleccionada).subscribe({
     next: (mallas: any) => {
-      this.mallasDisponibles = mallas;
+      this.mallasDisponibles = mallas.filter((malla: any) => malla.estado !== 'PROXIMA');
       this.cargandoMallas = false;
     },
     error: (err: any) => {

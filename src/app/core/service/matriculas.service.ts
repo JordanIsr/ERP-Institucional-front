@@ -20,6 +20,14 @@ export interface MateriaOpcionMatricula {
   codigo: string;
   nombre: string;
   docente: string;
+  esRepeticion?: boolean;
+}
+
+export interface CrearMatriculaSecretaria {
+  estudianteId: string;
+  periodoCarreraId: string;
+  paraleloId: string;
+  tipo: 'NUEVA';
 }
 
 export interface OpcionMatricula {
@@ -147,6 +155,15 @@ export class MatriculasService {
     Observable<MatriculaOficial[]> {
     return this.http.get<MatriculaOficial[]>(
       `${this.apiUrl}/mias`,
+    );
+  }
+
+  crearDesdeSecretaria(
+    datos: CrearMatriculaSecretaria,
+  ): Observable<MatriculaOficial> {
+    return this.http.post<MatriculaOficial>(
+      this.apiUrl,
+      datos,
     );
   }
 }

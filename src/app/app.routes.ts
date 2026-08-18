@@ -1,4 +1,4 @@
-import { ResolveStart, Routes } from '@angular/router';
+import { Routes } from '@angular/router';
 import { Login } from './pages/login/login';
 import { Dashboard } from './pages/dashboard/dashboard';
 import { Register } from './pages/register/register';
@@ -17,6 +17,7 @@ import { EstructuraCurricular } from './pages/estructura-curricular/estructura-c
 import { CrearMalla } from './pages/crear-malla/crear-malla';
 import { ParalelosHorarios } from './pages/oferta-academica/paralelos-horarios/paralelos-horarios';
 import { SolicitudesMatriculas } from './pages/matriculas/solicitudes-matriculas/solicitudes-matriculas';
+import { RevisionSolicitudes } from './pages/matriculas/revision-solicitudes/revision-solicitudes';
 import { RegistarNotas } from './pages/registrar-notas/registrar-notas';
 
 export const routes: Routes = [
@@ -67,9 +68,9 @@ export const routes: Routes = [
 },
 {
   path: 'matriculas/solicitudes',
-  component: SolicitudesMatriculas,
+  component: RevisionSolicitudes,
   canActivate: [authGuard],
-  data: { roles:['secretaria']}
+  data: { roles: ['admin', 'secretaria'] }
 },
 {
   path: 'historial-academico',
@@ -134,7 +135,7 @@ export const routes: Routes = [
 },
 
 {
-  path: 'matriculas/solicitudes',
+  path: 'matriculas/solicitud',
   component: SolicitudesMatriculas,
   canActivate: [authGuard],
   data: {roles: ['estudiante'],}

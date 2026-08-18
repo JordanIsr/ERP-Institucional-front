@@ -403,8 +403,11 @@ export class SolicitudesMatriculas implements OnInit {
   }
 
   nombreDocumento(
-    tipo: TipoDocumentoMatricula,
+    tipo: TipoDocumentoMatricula | null | undefined,
   ): string {
+    if (!tipo) {
+      return 'Documento de respaldo';
+    }
     const nombres: Record<
       TipoDocumentoMatricula,
       string
@@ -416,6 +419,12 @@ export class SolicitudesMatriculas implements OnInit {
     };
 
     return nombres[tipo];
+  }
+
+  errorDocumento(
+    tipo: TipoDocumentoMatricula | null | undefined,
+  ): string {
+    return tipo ? this.erroresArchivo[tipo] ?? '' : '';
   }
 
   nombreEstado(estado: string): string {

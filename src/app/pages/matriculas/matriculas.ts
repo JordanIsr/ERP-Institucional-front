@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import {
   FormBuilder,
   Validators,
@@ -6,8 +6,11 @@ import {
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 
 import { EstudiantesService } from './estudiantes.service';
+import { EstructuraAcademicaService } from '../../core/service/estructura-academica.service';
+import { MatriculasService } from '../../core/service/matriculas.service';
 
 @Component({
   selector: 'app-matriculas',
@@ -15,17 +18,28 @@ import { EstudiantesService } from './estudiantes.service';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     RouterModule,
   ],
   templateUrl: './matriculas.html',
   styleUrls: ['./matriculas.scss'],
 })
-export class Matriculas {
+export class Matriculas implements OnInit {
 
   private fb = inject(FormBuilder);
   private estudiantesService = inject(EstudiantesService);
+  private estructuraService = inject(EstructuraAcademicaService);
+  private matriculasService = inject(MatriculasService);
 
   guardando = false;
+  cargandoOferta = true;
+  errorGeneral = '';
+  mensajeExito = '';
+  ofertas: any[] = [];
+  paralelos: any[] = [];
+  periodoCarreraId = '';
+  paraleloId = '';
+  estudianteCreado: any = null;
 
   matriculaForm = this.fb.group({
 
@@ -69,6 +83,45 @@ export class Matriculas {
     ],
 
   });
+
+  ngOnInit(): void {
+    this.estructuraService.listarPeriodoCarrera().subscribe({
+      next: (ofertas: any[]) => {
+        this.ofertas = ofertas.filter((oferta) =>
+          oferta.estado !== 'INACTIVA' &&
+          oferta.periodo?.estado !== 'CERRADO' &&
+          oferta.versionMalla?.estado === 'ACTIVA',
+        );
+        this.cargandoOferta = false;
+      },
+      error: (error) => {
+        this.errorGeneral = this.mensajeError(error, 'No se pudo cargar la oferta académica.');
+        this.cargandoOferta = false;
+      },
+    });
+  }
+
+  cambiarOferta(): void {
+    this.paraleloId = '';
+    this.paralelos = [];
+    if (!this.periodoCarreraId) return;
+    this.estructuraService.listarParalelos(this.periodoCarreraId).subscribe({
+      next: (paralelos: any[]) => {
+        this.paralelos = paralelos.filter((paralelo) => paralelo.nivel?.numero === 1);
+      },
+      error: (error) => {
+        this.errorGeneral = this.mensajeError(error, 'No se pudieron cargar los paralelos de primer nivel.');
+      },
+    });
+  }
+
+  get ofertaSeleccionada(): any {
+    return this.ofertas.find((oferta) => oferta.id === this.periodoCarreraId);
+  }
+
+  get paraleloSeleccionado(): any {
+    return this.paralelos.find((paralelo) => paralelo.id === this.paraleloId);
+  }
 
 
   // ==============================
@@ -129,16 +182,23 @@ export class Matriculas {
 
     this.matriculaForm.markAllAsTouched();
 
-    if (this.matriculaForm.invalid) {
+    if (this.matriculaForm.invalid || !this.periodoCarreraId || !this.paraleloId) {
 
       alert(
-        'Por favor, revisa los campos del formulario.'
+        'Completa los datos personales y selecciona oferta académica y paralelo.'
       );
 
       return;
     }
 
     this.guardando = true;
+    this.errorGeneral = '';
+    this.mensajeExito = '';
+
+    if (this.estudianteCreado?.id) {
+      this.crearMatriculaOficial(this.estudianteCreado.id);
+      return;
+    }
 
     const datos = {
       cedula:
@@ -163,17 +223,8 @@ export class Matriculas {
       .subscribe({
 
         next: (estudiante) => {
-
-          this.guardando = false;
-
-          alert(
-            `Estudiante registrado correctamente.\n\n` +
-            `Cédula: ${estudiante.cedula}\n` +
-            `Nombre: ${estudiante.nombres} ${estudiante.apellidos}`
-          );
-
-          this.limpiarFormulario();
-
+          this.estudianteCreado = estudiante;
+          this.crearMatriculaOficial(estudiante.id);
         },
 
         error: (error) => {
@@ -187,28 +238,42 @@ export class Matriculas {
 
           if (error.status === 409) {
 
-            alert(
-              'Ya existe un estudiante registrado con esa cédula.'
-            );
+            this.errorGeneral = 'Ya existe un estudiante con esa cédula. Para un estudiante antiguo usa la revisión de solicitudes.';
 
             return;
           }
 
           if (error.status === 400) {
 
-            alert(
-              'Los datos enviados no son válidos. Revisa el formulario.'
-            );
+            this.errorGeneral = this.mensajeError(error, 'Los datos enviados no son válidos.');
 
             return;
           }
 
-          alert(
-            'No se pudo registrar el estudiante.'
-          );
+          this.errorGeneral = this.mensajeError(error, 'No se pudo registrar el estudiante.');
         },
 
       });
+  }
+
+  private crearMatriculaOficial(estudianteId: string): void {
+    this.matriculasService.crearDesdeSecretaria({
+      estudianteId,
+      periodoCarreraId: this.periodoCarreraId,
+      paraleloId: this.paraleloId,
+      tipo: 'NUEVA',
+    }).subscribe({
+      next: () => {
+        const estudiante = this.estudianteCreado;
+        this.guardando = false;
+        this.mensajeExito = `Matrícula creada correctamente para ${estudiante?.nombres ?? ''} ${estudiante?.apellidos ?? ''}.`;
+        this.limpiarFormulario(false);
+      },
+      error: (error) => {
+        this.guardando = false;
+        this.errorGeneral = this.mensajeError(error, 'La ficha fue creada, pero no se pudo completar la matrícula. Corrige la oferta o el paralelo y vuelve a intentar.');
+      },
+    });
   }
 
 
@@ -216,12 +281,25 @@ export class Matriculas {
   // LIMPIAR
   // ==============================
 
-  limpiarFormulario(): void {
+  limpiarFormulario(limpiarMensajes = true): void {
 
     this.matriculaForm.reset();
 
     this.matriculaForm.markAsPristine();
     this.matriculaForm.markAsUntouched();
+    this.periodoCarreraId = '';
+    this.paraleloId = '';
+    this.paralelos = [];
+    this.estudianteCreado = null;
+    if (limpiarMensajes) {
+      this.errorGeneral = '';
+      this.mensajeExito = '';
+    }
+  }
+
+  private mensajeError(error: any, predeterminado: string): string {
+    const mensaje = error?.error?.message;
+    return Array.isArray(mensaje) ? mensaje.join(' ') : mensaje ?? predeterminado;
   }
 
 }

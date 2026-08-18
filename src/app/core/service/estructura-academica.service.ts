@@ -171,4 +171,8 @@ export class EstructuraAcademicaService {
   agregarAsignaturaAParalelo(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/asignatura-paralelo`, data, { headers: this.headers() });
   }
+
+  quitarAsignaturaDeParalelo(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/asignatura-paralelo/${id}`, { headers: this.headers() });
+  }
 }
