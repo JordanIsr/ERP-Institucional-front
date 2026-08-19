@@ -1,0 +1,68 @@
+<div class="vista-container">
+  <div class="card-filtros">
+    <div class="campo">
+      <label>Carrera</label>
+      <select [(ngModel)]="carreraId">
+        <option value="">-- Seleccione Carrera --</option>
+        <option *ngFor="let c of carreras" [value]="c.id">{{ c.nombre }}</option>
+      </select>
+    </div>
+
+    <div class="campo">
+      <label>Periodo Académico</label>
+      <select [(ngModel)]="periodoId">
+        <option value="">-- Seleccione Periodo --</option>
+        <option *ngFor="let p of periodos" [value]="p.id">{{ p.nombre }}</option>
+      </select>
+    </div>
+
+    <div class="campo">
+      <label>Buscar</label>
+      <input type="text" [(ngModel)]="terminoBusqueda" placeholder="Filtrar materia, docente..." />
+    </div>
+
+    <button class="btn-consultar" (click)="buscarEstructura()">Ver Estructura</button>
+  </div>
+
+  <!-- Tabla de Malla Curricular -->
+  <div class="card-tabla" *ngIf="filasFiltradas.length > 0 && !cargando">
+    <table class="tabla-malla">
+      <thead>
+        <tr>
+          <th>ASIGNATURA</th>
+          <th>NIVEL</th>
+          <th>JORNADA</th>
+          <th>PARALELO</th>
+          <th>CUPO</th>
+          <th>HORARIO</th>
+          <th>DOCENTE</th>
+          <th>ESTADO</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of filasFiltradas">
+          <td><strong>{{ item.asignaturaNombre }}</strong></td>
+          <td><span class="badge-nivel">Nivel {{ item.nivel }}</span></td>
+          <td>
+            <span class="tag-jornada" [ngClass]="item.jornada.toLowerCase()">
+              {{ item.jornada }}
+            </span>
+          </td>
+          <td><span class="badge-paralelo">Par. {{ item.paralelo }}</span></td>
+          <td>{{ item.cupoOcupado }}/{{ item.cupo }}</td>
+          <td>{{ item.horario }}</td>
+          <td>{{ item.docenteNombre }}</td>
+          <td>
+            <span class="badge-estado" [ngClass]="item.estado.toLowerCase()">
+              {{ item.estado }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="sin-registros" *ngIf="filasFiltradas.length === 0 && !cargando">
+    No se encontraron registros para la consulta realizada.
+  </div>
+</div>

@@ -1,0 +1,227 @@
+<div class="catalogos-container">
+  <div class="paso-configuracion"><span>Rama 2 · Base</span><strong>Catálogos académicos</strong><small>Carreras, asignaturas, docentes, centros y aulas se crean una sola vez.</small></div>
+  <div class="panel-header">
+    <h2>Catálogos Académicos</h2>
+    <p class="descripcion">Administra la información base. Completa estos catálogos antes de crear mallas, ofertas académicas, paralelos y matrículas.</p>
+  </div>
+
+  <div class="tabs">
+    <button [class.active]="tab === 'carreras'" (click)="cambiarTab('carreras')">Carreras</button>
+    <button [class.active]="tab === 'asignaturas'" (click)="cambiarTab('asignaturas')">Asignaturas</button>
+    <button [class.active]="tab === 'docentes'" (click)="cambiarTab('docentes')">Docentes</button>
+    <button [class.active]="tab === 'centros'" (click)="cambiarTab('centros')">Centros de estudio</button>
+    <button [class.active]="tab === 'aulas'" (click)="cambiarTab('aulas')">Aulas</button>
+  </div>
+
+  <!-- ===================== TAB CARRERAS ===================== -->
+  <div *ngIf="tab === 'carreras'">
+    <p class="descripcion-tab">Registra las carreras que ofrece el instituto. Una carrera no se puede eliminar si ya tiene dependencias asociadas — desactívala en su lugar.</p>
+
+    <div class="card">
+      <h3>Nueva Carrera</h3>
+      <div class="fila-form">
+        <div class="campo"><label>Nombre</label><input [(ngModel)]="nuevaCarrera.nombre" placeholder="Ej. Desarrollo de Software"></div>
+        <div class="campo"><label>Código</label><input [(ngModel)]="nuevaCarrera.codigo" placeholder="Ej. TDS"></div>
+        <button class="btn btn-crear" (click)="crearCarrera()">Crear</button>
+      </div>
+    </div>
+
+    <div class="lista-tarjetas">
+      <div class="sin-datos" *ngIf="carreras.length === 0">No hay carreras registradas.</div>
+      <div class="tarjeta sin-click" *ngFor="let c of carreras">
+        <ng-container *ngIf="editandoCarreraId !== c.id; else editCarrera">
+          <div class="tarjeta-info">
+            <strong>{{ c.nombre }}</strong>
+            <span>{{ c.codigo }}</span>
+          </div>
+          <span class="badge-estado" [ngClass]="c.estado?.toLowerCase()">{{ c.estado }}</span>
+          <div class="tarjeta-acciones">
+            <button class="btn-icono" (click)="activarEdicionCarrera(c)">✏️</button>
+            <button class="btn-icono btn-eliminar" (click)="eliminarCarrera(c)">🗑️</button>
+          </div>
+        </ng-container>
+        <ng-template #editCarrera>
+          <div class="edicion-inline">
+            <input [(ngModel)]="carreraEdit.nombre">
+            <input [(ngModel)]="carreraEdit.codigo">
+            <select [(ngModel)]="carreraEdit.estado">
+              <option value="ACTIVA">ACTIVA</option>
+              <option value="INACTIVA">INACTIVA</option>
+            </select>
+            <button class="btn btn-guardar" (click)="guardarEdicionCarrera(c.id)">Guardar</button>
+            <button class="btn btn-cancelar" (click)="editandoCarreraId = ''">Cancelar</button>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== TAB ASIGNATURAS ===================== -->
+  <div *ngIf="tab === 'asignaturas'">
+    <p class="descripcion-tab">Catálogo único de asignaturas. Los cambios en el nombre o configuración se aplicarán globalmente en el sistema.</p>
+
+    <div class="card">
+      <h3>Nueva Asignatura</h3>
+      <div class="fila-form">
+        <div class="campo"><label>Código</label><input [(ngModel)]="nuevaAsignatura.codigo" placeholder="Ej. MAT101"></div>
+        <div class="campo"><label>Nombre</label><input [(ngModel)]="nuevaAsignatura.nombre" placeholder="Ej. Matemáticas"></div>
+        <div class="campo"><label>Horas semanales</label><input type="number" [(ngModel)]="nuevaAsignatura.horasSemanales"></div>
+        <button class="btn btn-crear" (click)="crearAsignatura()">Crear</button>
+      </div>
+    </div>
+
+    <div class="lista-tarjetas">
+      <div class="sin-datos" *ngIf="asignaturas.length === 0">No hay asignaturas registradas.</div>
+      <div class="tarjeta sin-click" *ngFor="let a of asignaturas">
+        <ng-container *ngIf="editandoAsignaturaId !== a.id; else editAsig">
+          <div class="tarjeta-info">
+            <strong>{{ a.nombre }}</strong>
+            <span>{{ a.codigo }} · {{ a.horasSemanales }}h/semana</span>
+          </div>
+          <span class="badge-estado" [ngClass]="a.estado?.toLowerCase()">{{ a.estado }}</span>
+          <div class="tarjeta-acciones">
+            <button class="btn-icono" (click)="activarEdicionAsignatura(a)">✏️</button>
+            <button class="btn-icono btn-eliminar" (click)="eliminarAsignatura(a)">🗑️</button>
+          </div>
+        </ng-container>
+        <ng-template #editAsig>
+          <div class="edicion-inline">
+            <input [(ngModel)]="asignaturaEdit.codigo">
+            <input [(ngModel)]="asignaturaEdit.nombre">
+            <input type="number" [(ngModel)]="asignaturaEdit.horasSemanales">
+            <select [(ngModel)]="asignaturaEdit.estado">
+              <option value="ACTIVA">ACTIVA</option>
+              <option value="INACTIVA">INACTIVA</option>
+            </select>
+            <button class="btn btn-guardar" (click)="guardarEdicionAsignatura(a.id)">Guardar</button>
+            <button class="btn btn-cancelar" (click)="editandoAsignaturaId = ''">Cancelar</button>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== TAB DOCENTES ===================== -->
+  <div *ngIf="tab === 'docentes'">
+    <p class="descripcion-tab">Registro de docentes. Luego se les asigna una asignatura dentro de cada aula, desde el flujo de Periodos.</p>
+
+    <div class="card">
+      <h3>Nuevo Docente</h3>
+      <div class="fila-form">
+        <div class="campo"><label>Nombres</label><input [(ngModel)]="nuevoDocente.nombres"></div>
+        <div class="campo"><label>Apellidos</label><input [(ngModel)]="nuevoDocente.apellidos"></div>
+        <div class="campo"><label>Cédula</label><input [(ngModel)]="nuevoDocente.cedula"></div>
+        <div class="campo"><label>Correo</label><input [(ngModel)]="nuevoDocente.correo"></div>
+        <button class="btn btn-crear" (click)="crearDocente()">Crear</button>
+      </div>
+    </div>
+
+    <div class="lista-tarjetas">
+      <div class="sin-datos" *ngIf="docentes.length === 0">No hay docentes registrados.</div>
+      <div class="tarjeta sin-click" *ngFor="let d of docentes">
+        <ng-container *ngIf="editandoDocenteId !== d.id; else editDoc">
+          <div class="tarjeta-info">
+            <strong>{{ d.nombres }} {{ d.apellidos }}</strong>
+            <span>{{ d.cedula }} · {{ d.correo }}</span>
+          </div>
+          <span class="badge-estado" [ngClass]="d.estado?.toLowerCase()">{{ d.estado }}</span>
+          <div class="tarjeta-acciones">
+            <button class="btn-icono" (click)="activarEdicionDocente(d)">✏️</button>
+            <button class="btn-icono btn-eliminar" (click)="eliminarDocente(d)">🗑️</button>
+          </div>
+        </ng-container>
+        <ng-template #editDoc>
+          <div class="edicion-inline">
+            <input [(ngModel)]="docenteEdit.nombres">
+            <input [(ngModel)]="docenteEdit.apellidos">
+            <input [(ngModel)]="docenteEdit.cedula">
+            <input [(ngModel)]="docenteEdit.correo">
+            <button class="btn btn-guardar" (click)="guardarEdicionDocente(d.id)">Guardar</button>
+            <button class="btn btn-cancelar" (click)="editandoDocenteId = ''">Cancelar</button>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== TAB CENTROS ===================== -->
+  <div *ngIf="tab === 'centros'">
+    <p class="descripcion-tab">Los centros representan las sedes institucionales. Son obligatorios para configurar una oferta académica.</p>
+
+    <div class="card">
+      <h3>Nuevo Centro de Estudio</h3>
+      <div class="fila-form">
+        <div class="campo"><label>Nombre</label><input [(ngModel)]="nuevoCentro.nombre" placeholder="Ej. Matriz"></div>
+        <div class="campo"><label>Código</label><input [(ngModel)]="nuevoCentro.codigo" placeholder="Ej. MTZ"></div>
+        <button class="btn btn-crear" (click)="crearCentro()">Crear</button>
+      </div>
+    </div>
+
+    <div class="lista-tarjetas">
+      <div class="sin-datos" *ngIf="centrosEstudio.length === 0">No hay centros registrados. Crea uno para habilitar carreras en un periodo.</div>
+      <div class="tarjeta sin-click" *ngFor="let c of centrosEstudio">
+        <ng-container *ngIf="editandoCentroId !== c.id; else editCentro">
+          <div class="tarjeta-info"><strong>{{ c.nombre }}</strong><span>{{ c.codigo }}</span></div>
+          <span class="badge-estado" [ngClass]="c.estado?.toLowerCase()">{{ c.estado }}</span>
+          <div class="tarjeta-acciones">
+            <button class="btn-icono" (click)="activarEdicionCentro(c)">✏️</button>
+            <button class="btn-icono btn-eliminar" (click)="eliminarCentro(c)">🗑️</button>
+          </div>
+        </ng-container>
+        <ng-template #editCentro>
+          <div class="edicion-inline">
+            <input [(ngModel)]="centroEdit.nombre" placeholder="Nombre">
+            <input [(ngModel)]="centroEdit.codigo" placeholder="Código">
+            <select [(ngModel)]="centroEdit.estado"><option value="ACTIVO">ACTIVO</option><option value="INACTIVO">INACTIVO</option></select>
+            <button class="btn btn-guardar" (click)="guardarEdicionCentro(c.id)">Guardar</button>
+            <button class="btn btn-cancelar" (click)="editandoCentroId = ''">Cancelar</button>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== TAB AULAS ===================== -->
+  <div *ngIf="tab === 'aulas'">
+    <p class="descripcion-tab">Cada paralelo necesita un aula activa; la capacidad del aula determina automáticamente su cupo máximo.</p>
+
+    <div class="card">
+      <h3>Nueva Aula</h3>
+      <div class="fila-form">
+        <div class="campo"><label>Nombre</label><input [(ngModel)]="nuevaAula.nombre" placeholder="Ej. Laboratorio 1"></div>
+        <div class="campo"><label>Bloque (opcional)</label><input [(ngModel)]="nuevaAula.bloque" placeholder="Ej. Bloque A"></div>
+        <div class="campo"><label>Capacidad máxima</label><input type="number" min="1" [(ngModel)]="nuevaAula.capacidadMaxima"></div>
+        <button class="btn btn-crear" (click)="crearAula()">Crear</button>
+      </div>
+    </div>
+
+    <div class="lista-tarjetas">
+      <div class="sin-datos" *ngIf="aulas.length === 0">No hay aulas registradas. Crea una para poder abrir paralelos.</div>
+      <div class="tarjeta sin-click" *ngFor="let a of aulas">
+        <ng-container *ngIf="editandoAulaId !== a.id; else editAula">
+          <div class="tarjeta-info"><strong>{{ a.nombre }}</strong><span>{{ a.bloque || 'Sin bloque' }} · capacidad {{ a.capacidadMaxima }}</span></div>
+          <span class="badge-estado" [ngClass]="a.activo ? 'activo' : 'inactivo'">{{ a.activo ? 'ACTIVA' : 'INACTIVA' }}</span>
+          <div class="tarjeta-acciones">
+            <button class="btn-icono" (click)="activarEdicionAula(a)">✏️</button>
+            <button class="btn-icono btn-eliminar" *ngIf="a.activo" (click)="desactivarAula(a)">🗑️</button>
+          </div>
+        </ng-container>
+        <ng-template #editAula>
+          <div class="edicion-inline">
+            <input [(ngModel)]="aulaEdit.nombre" placeholder="Nombre">
+            <input [(ngModel)]="aulaEdit.bloque" placeholder="Bloque">
+            <input type="number" min="1" [(ngModel)]="aulaEdit.capacidadMaxima">
+            <select [(ngModel)]="aulaEdit.activo"><option [ngValue]="true">ACTIVA</option><option [ngValue]="false">INACTIVA</option></select>
+            <button class="btn btn-guardar" (click)="guardarEdicionAula(a.id)">Guardar</button>
+            <button class="btn btn-cancelar" (click)="editandoAulaId = ''">Cancelar</button>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+
+  <div class="navegacion-flujo">
+    <span>Cuando los cinco catálogos estén completos, modela cada carrera:</span>
+    <a class="btn-siguiente-flujo" routerLink="/crear-malla">Configurar niveles y asignaturas →</a>
+  </div>
+</div>

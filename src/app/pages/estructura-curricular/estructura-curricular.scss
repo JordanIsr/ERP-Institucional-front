@@ -1,0 +1,198 @@
+/* Contenedor Principal */
+.vista-container {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  background-color: #f8fafc;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Card de Filtros Superior */
+  .card-filtros {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1.25rem;
+    background: #ffffff;
+    padding: 1.25rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e2e8f0;
+
+    .campo {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      flex: 1;
+      min-width: 200px;
+
+      label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+      }
+
+      select, input {
+        width: 100%;
+        padding: 0.625rem 0.875rem;
+        font-size: 0.925rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        outline: none;
+        background-color: #f8fafc;
+        color: #1e293b;
+        transition: all 0.2s ease;
+
+        &:focus {
+          border-color: #2563eb;
+          background-color: #ffffff;
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+      }
+    }
+
+    .btn-consultar {
+      padding: 0.65rem 1.5rem;
+      background-color: #2563eb;
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 0.925rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+      height: 42px;
+
+      &:hover {
+        background-color: #1d4ed8;
+      }
+
+      &:active {
+        transform: scale(0.98);
+      }
+    }
+  }
+
+  /* Card de la Tabla de Datos */
+  .card-tabla {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    overflow-x: auto;
+
+    .tabla-malla {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+
+      thead {
+        background-color: #f1f5f9;
+        border-bottom: 2px solid #e2e8f0;
+
+        th {
+          padding: 1rem;
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #475569;
+          letter-spacing: 0.05em;
+        }
+      }
+
+      tbody {
+        tr {
+          border-bottom: 1px solid #f1f5f9;
+          transition: background-color 0.15s ease;
+
+          &:hover {
+            background-color: #f8fafc;
+          }
+
+          td {
+            padding: 0.875rem 1rem;
+            color: #334155;
+            vertical-align: middle;
+
+            strong {
+              color: #0f172a;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /* Estado vacío / Sin registros */
+  .sin-registros {
+    background: #ffffff;
+    padding: 3rem;
+    text-align: center;
+    color: #64748b;
+    border-radius: 12px;
+    border: 1px dashed #cbd5e1;
+    font-size: 0.95rem;
+  }
+}
+
+/* Badges y Tags */
+.badge-nivel {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.badge-paralelo {
+  background-color: #f1f5f9;
+  color: #475569;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.tag-jornada {
+  padding: 0.25rem 0.65rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+
+  &.matutina {
+    background-color: #fef9c3;
+    color: #a16207;
+  }
+
+  &.vespertina {
+    background-color: #ffedd5;
+    color: #c2410c;
+  }
+
+  &.nocturna {
+    background-color: #e0e7ff;
+    color: #3730a3;
+  }
+}
+
+.badge-estado {
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+
+  &.disponible {
+    background-color: #dcfce7;
+    color: #15803d;
+  }
+
+  &.lleno {
+    background-color: #fee2e2;
+    color: #b91c1c;
+  }
+}

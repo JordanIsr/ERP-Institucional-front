@@ -1,0 +1,15 @@
+<div class="config-container">
+  <div class="hero"><div><span>Administrador</span><h2>Preparación académica</h2><p>Dos ramas independientes convergen en la oferta. Matrícula se habilita cuando la parametrización está completa.</p></div><div class="resumen"><strong>{{ ofertasListas.length }}</strong><small>ofertas listas para matrícula</small></div></div>
+  <p *ngIf="error" class="mensaje-form error">{{ error }}</p><div class="cargando" *ngIf="cargando">Calculando estado de la configuración...</div>
+  <div class="ramas" *ngIf="!cargando">
+    <section><h3>Rama 1 · Tiempo académico</h3><p>Los periodos existen de forma independiente.</p><a routerLink="/periodos-flujo">Administrar periodos →</a></section>
+    <section><h3>Rama 2 · Estructura de carreras</h3><p>Carrera → malla → niveles → asignaturas.</p><a routerLink="/catalogos">Administrar estructura →</a></section>
+  </div>
+  <div class="pasos" *ngIf="!cargando">
+    <article *ngFor="let paso of pasos" [class.completo]="paso.completo">
+      <div class="icono">{{ paso.completo ? '✓' : '!' }}</div><div><h4>{{ paso.titulo }}</h4><p>{{ paso.detalle }}</p><small *ngIf="paso.alerta">{{ paso.alerta }}</small></div><a [routerLink]="paso.ruta">Abrir</a>
+    </article>
+  </div>
+  <div class="pendientes" *ngIf="ofertasPendientes.length"><h3>Ofertas que todavía no pueden matricular</h3><div *ngFor="let o of ofertasPendientes"><strong>{{ o.periodo.nombre }} · {{ o.carrera.nombre }} · {{ o.jornada }}</strong><span>{{ o.motivoNoDisponible }}</span></div></div>
+  <div class="listo" *ngIf="ofertasListas.length && !ofertasPendientes.length"><strong>✓ Configuración académica completa</strong><span>Las ofertas activas están listas para que Secretaría matricule.</span></div>
+</div>

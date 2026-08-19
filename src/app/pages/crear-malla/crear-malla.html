@@ -1,0 +1,76 @@
+<div class="malla-container">
+  <div class="paso-configuracion"><span>Rama 2 · Estructura</span><strong>Carrera → malla → niveles → asignaturas</strong><small>Activa la malla solamente cuando todos sus niveles estén completos.</small></div>
+  <div class="header-acciones">
+    <h2>Diseñador y Editor de Mallas Curriculares</h2>
+    <button class="btn-guardar" [disabled]="guardando" (click)="guardarMalla()">{{ guardando ? 'Guardando...' : 'Crear malla completa' }}</button>
+  </div>
+
+  <!-- Configuración de Carrera y Carga de Mallas -->
+  <div class="card-config">
+    <div class="campo">
+      <label>Carrera:</label>
+      <select [(ngModel)]="carreraId" (change)="cargarMallaExistente()">
+        <option value="">-- Seleccione Carrera --</option>
+        <option *ngFor="let c of carreras" [value]="c.id">{{ c.nombre }}</option>
+      </select>
+    </div>
+
+    <div class="campo">
+      <label>Código de versión:</label>
+      <input [(ngModel)]="versionMalla" placeholder="Ej. 2026-A">
+    </div>
+
+    <div class="campo">
+      <label>Inicio de vigencia:</label>
+      <input type="date" [(ngModel)]="fechaVigenciaInicio">
+    </div>
+    
+    <div class="campo">
+      <label>Nombre/Versión de Malla:</label>
+      <input [(ngModel)]="nombreMalla" placeholder="Ej. Malla Rediseño 2026">
+    </div>
+
+    <div class="campo-btn">
+      <button class="btn-secundario" (click)="agregarNivel()">+ Agregar Nivel/Semestre</button>
+    </div>
+  </div>
+
+  <p *ngIf="error" style="color:#991b1b;background:#fee2e2;padding:12px;border-radius:8px">{{ error }}</p>
+  <p *ngIf="mensaje" style="color:#166534;background:#dcfce7;padding:12px;border-radius:8px">{{ mensaje }}</p>
+
+  <!-- Niveles Dinámicos (Creados a necesidad) -->
+  <div class="grid-niveles">
+    <div class="card-nivel" *ngFor="let nivel of niveles; let i = index">
+      <div class="nivel-header">
+        <h3>Nivel {{ nivel.numero }}</h3>
+        <button class="btn-eliminar-nivel" (click)="eliminarNivel(i)" title="Eliminar este nivel">✕ Nivel</button>
+      </div>
+      
+      <div class="materia-fila" *ngFor="let matId of nivel.asignaturasIds; let j = index; trackBy: trackByFn">
+        <select [(ngModel)]="nivel.asignaturasIds[j]">
+          <option value="">-- Seleccionar Asignatura --</option>
+          <option *ngFor="let asig of asignaturasCatalogo" [value]="asig.id">
+            {{ asig.nombre }} {{ asig.codigo ? '(' + asig.codigo + ')' : '' }}
+          </option>
+        </select>
+        <button class="btn-del" (click)="removerMateriaDeNivel(i, j)">✕</button>
+      </div>
+
+      <button class="btn-add" (click)="agregarMateriaANivel(i)">+ Asignar Materia</button>
+    </div>
+  </div>
+
+  <div class="card-config" *ngIf="mallasCarrera.length > 0">
+    <div style="width:100%">
+      <h3>Versiones existentes de la carrera</h3>
+      <div *ngFor="let malla of mallasCarrera" style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #e5e7eb">
+        <span><strong>{{ malla.nombre }}</strong> · {{ malla.version }} · {{ malla.estado }}</span>
+        <button *ngIf="malla.estado === 'PROXIMA'" class="btn-secundario" (click)="activarMalla(malla)">Activar malla</button>
+      </div>
+    </div>
+  </div>
+  <div class="navegacion-flujo">
+    <span>Cuando la malla esté ACTIVA, une las dos ramas:</span>
+    <a class="btn-siguiente-flujo" routerLink="/carreras-periodo">Asociar carrera al periodo →</a>
+  </div>
+</div>

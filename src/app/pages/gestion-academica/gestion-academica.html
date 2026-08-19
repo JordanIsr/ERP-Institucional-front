@@ -1,0 +1,47 @@
+<!-- REGISTRAR NOTA -->
+<div class="panel">
+  <h3>Registrar Nota</h3>
+
+  <div class="fila-form">
+    <select [(ngModel)]="estudianteSeleccionadoId" (change)="seleccionarEstudiante()">
+      <option value="">Selecciona un estudiante...</option>
+      <option *ngFor="let e of estudiantes" [value]="e.id">
+        {{ e.nombres }} {{ e.apellidos }} — {{ e.cedula }}
+      </option>
+    </select>
+  </div>
+
+  <div class="info-estudiante" *ngIf="estudianteSeleccionado">
+    <span>Carrera: <strong>{{ estudianteSeleccionado.carrera }}</strong></span>
+    <span>Periodo: <strong>{{ estudianteSeleccionado.periodo }}</strong></span>
+  </div>
+
+  <div class="fila-form" *ngIf="estudianteSeleccionadoId && asignaturasFiltradas.length > 0">
+    <select [(ngModel)]="nuevaNota.asignaturaId">
+      <option value="">Selecciona la asignatura...</option>
+      <option *ngFor="let a of asignaturasFiltradas" [value]="a.id">{{ a.nombre }}</option>
+    </select>
+    <input type="number" min="0" max="10" step="0.1" [(ngModel)]="nuevaNota.nota" placeholder="Nota">
+    <button class="btn btn-crear" (click)="registrarNota()">Guardar Nota</button>
+  </div>
+
+  <div class="sin-asignaturas" *ngIf="estudianteSeleccionadoId && asignaturasFiltradas.length === 0">
+    ⚠️ No hay asignaturas creadas todavía para <strong>{{ estudianteSeleccionado?.carrera }}</strong> —
+    <strong>{{ estudianteSeleccionado?.periodo }}</strong>. Crea una arriba primero.
+  </div>
+
+  <div class="tabla-historial" *ngIf="estudianteSeleccionadoId">
+    <div class="sin-datos" *ngIf="historialDelEstudiante.length === 0">
+      Este estudiante aún no tiene notas registradas.
+    </div>
+    <div class="fila-materia" *ngFor="let item of historialDelEstudiante">
+      <div class="materia-info">
+        <strong>{{ item.asignatura.nombre }}</strong>
+      </div>
+      <div class="materia-nota">
+        <span class="nota-valor">{{ item.nota }}</span>
+        <span class="badge-estado" [ngClass]="item.estado.toLowerCase()">{{ item.estado }}</span>
+      </div>
+    </div>
+  </div>
+</div>

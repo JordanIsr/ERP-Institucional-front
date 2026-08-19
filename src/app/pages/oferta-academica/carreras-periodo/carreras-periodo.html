@@ -1,0 +1,29 @@
+<div class="ofertas-container">
+  <div class="paso-configuracion"><span>Convergencia</span><strong>Carreras por periodo</strong><small>Une la rama de periodos con la estructura académica de cada carrera.</small></div>
+  <div class="cabecera"><h2>Carreras por periodo</h2><p>La malla ACTIVA se hereda automáticamente; aquí solamente defines dónde y cuándo se oferta la carrera.</p></div>
+  <p *ngIf="error" class="mensaje-form error">{{ error }}</p><p *ngIf="mensaje" class="mensaje-form exito">{{ mensaje }}</p>
+  <div class="card asociar">
+    <h3>Nueva asociación</h3>
+    <div class="grid">
+      <label>Periodo<select [(ngModel)]="periodoId"><option value="">Selecciona periodo</option><option *ngFor="let p of periodos" [value]="p.id">{{ p.nombre }} · {{ p.estado }}</option></select></label>
+      <label>Carrera<select [(ngModel)]="carreraId" (change)="cambiarCarrera()"><option value="">Selecciona carrera</option><option *ngFor="let c of carreras" [value]="c.id">{{ c.nombre }}</option></select></label>
+      <label>Centro<select [(ngModel)]="centroEstudioId"><option value="">Selecciona centro</option><option *ngFor="let c of centros" [value]="c.id">{{ c.nombre }}</option></select></label>
+      <label>Jornada<select [(ngModel)]="jornada"><option value="">Selecciona jornada</option><option value="MATUTINA">Matutina</option><option value="VESPERTINA">Vespertina</option><option value="NOCTURNA">Nocturna</option></select></label>
+    </div>
+    <div class="herencia" [class.invalida]="carreraId && !mallaActiva">
+      <ng-container *ngIf="!carreraId">Selecciona una carrera para verificar su malla.</ng-container>
+      <ng-container *ngIf="carreraId && mallaActiva"><strong>✓ Malla heredada:</strong> {{ mallaActiva.nombre }} · {{ mallaActiva.version }} · ACTIVA</ng-container>
+      <ng-container *ngIf="carreraId && !mallaActiva"><strong>✕ No se puede asociar:</strong> esta carrera no tiene malla ACTIVA.</ng-container>
+    </div>
+    <button class="btn-principal" (click)="guardar()" [disabled]="guardando || !mallaActiva">{{ guardando ? 'Asociando...' : 'Asociar carrera al periodo' }}</button>
+  </div>
+
+  <div class="listado-cabecera"><h3>Asociaciones e historial</h3><select [(ngModel)]="filtroPeriodoId"><option value="">Todos los periodos</option><option *ngFor="let p of periodos" [value]="p.id">{{ p.nombre }}</option></select></div>
+  <div class="sin-datos" *ngIf="!cargando && ofertasFiltradas.length === 0">No existen asociaciones para este filtro.</div>
+  <div class="oferta" *ngFor="let o of ofertasFiltradas">
+    <div><strong>{{ o.periodo?.nombre }} · {{ o.carrera?.nombre }}</strong><span>{{ o.centroEstudio?.nombre }} · {{ o.jornada }}</span><small>Malla histórica asociada: {{ o.versionMalla?.nombre }} · {{ o.versionMalla?.version }}</small></div>
+    <span class="estado" [class.inactiva]="o.estado === 'INACTIVA'">{{ o.estado }}</span>
+    <button *ngIf="o.estado === 'ACTIVA'" (click)="desactivar(o)">Desactivar</button>
+  </div>
+  <div class="navegacion-flujo"><span>Cuando estén creadas todas las jornadas:</span><a class="btn-siguiente-flujo" routerLink="/paralelos-horarios">Configurar paralelos y docentes →</a></div>
+</div>

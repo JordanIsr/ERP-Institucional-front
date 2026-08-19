@@ -1,0 +1,26 @@
+<div class="comprobantes-container">
+  <div class="comprobantes-header">
+    <h2>Comprobantes Pendientes</h2>
+    <p>Revisa y aprueba los comprobantes de pago subidos</p>
+  </div>
+
+  <div class="estado-carga" *ngIf="cargando">Cargando...</div>
+
+  <div class="lista-panel" *ngIf="!cargando">
+    <div class="sin-datos" *ngIf="pendientes.length === 0">
+      No hay comprobantes pendientes de revisión. 🎉
+    </div>
+
+    <div class="fila-comprobante" *ngFor="let c of pendientes">
+      <div class="comprobante-info">
+        <strong>{{ c.estudiante.nombres }} {{ c.estudiante.apellidos }}</strong>
+        <span>Cédula: {{ c.estudiante.cedula }} · Subido: {{ c.fechaSubida | date:'short' }}</span>
+      </div>
+      <div class="comprobante-acciones">
+        <a [href]="urlBase + c.archivoUrl" target="_blank" class="btn btn-ver">Ver archivo</a>
+        <button class="btn btn-aprobar" (click)="aprobar(c.id)">Aprobar</button>
+        <button class="btn btn-rechazar" (click)="rechazar(c.id)">Rechazar</button>
+      </div>
+    </div>
+  </div>
+</div>

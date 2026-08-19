@@ -1,0 +1,102 @@
+<div class="paralelos-container">
+  <div class="paso-configuracion"><span>Oferta operativa</span><strong>Periodo → carrera → nivel → asignaturas → paralelos</strong><small>Define cupos y asigna un docente a cada materia heredada.</small></div>
+  <h2>Apertura de Paralelos y Horarios</h2>
+  <p *ngIf="error" style="color:#991b1b;background:#fee2e2;padding:12px;border-radius:8px">{{ error }}</p>
+  <p *ngIf="mensaje" style="color:#166534;background:#dcfce7;padding:12px;border-radius:8px">{{ mensaje }}</p>
+  <p *ngIf="!cargandoCatalogos && requisitosPendientes.length" style="color:#9a3412;background:#fff7ed;border:1px solid #fed7aa;padding:12px;border-radius:8px">
+    Antes de abrir un paralelo debes crear {{ requisitosPendientes.join(', ') }}.
+  </p>
+
+  <div class="card-formulario">
+    <div class="grid-form">
+      <!-- Selección Dinámica del Periodo-Carrera -->
+      <div class="campo">
+        <label>Periodo - Carrera *</label>
+        <select [(ngModel)]="periodoCarreraId" (change)="alCambiarPeriodo()" [disabled]="periodosCarrera.length === 0">
+          <option value="">-- Seleccione una carrera ofertada --</option>
+          <option *ngFor="let p of periodosCarrera" [value]="p.id">
+            {{ p.periodo?.nombre }} · {{ p.carrera?.nombre }} · {{ p.jornada }} · {{ p.centroEstudio?.nombre }} · {{ p.versionMalla?.nombre }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Selección del Nivel/Malla -->
+      <div class="campo">
+        <label>Nivel de la Malla *</label>
+        <select [(ngModel)]="nivelId" (change)="alCambiarNivel()" [disabled]="!periodoCarreraId || nivelesMalla.length === 0">
+          <option value="">-- Seleccione Nivel --</option>
+          <option *ngFor="let n of nivelesMalla" [value]="n.id">
+            {{ n.nombre }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Nombre del Paralelo -->
+      <div class="campo">
+        <label>Nombre Paralelo *</label>
+        <input [(ngModel)]="nombreParalelo" placeholder="Ej. Paralelo A">
+      </div>
+
+      <!-- Aula y Cupos Automatizados -->
+      <div class="campo">
+        <label>Aula Física (Catálogos)</label>
+        <select [(ngModel)]="aulaSeleccionadaId" (change)="alSeleccionarAula()" [disabled]="aulas.length === 0">
+          <option value="">-- Seleccione Aula --</option>
+          <option *ngFor="let aula of aulas" [value]="aula.id">
+            {{ aula.nombre }} (Máx. {{ aula.capacidadMaxima }} alu.)
+          </option>
+        </select>
+      </div>
+
+      <div class="campo">
+        <label>Cupos Maximos (Auto)</label>
+        <input type="number" [(ngModel)]="cupoAuto" placeholder="0">
+        <small class="helper-text">Valor cargado de la capacidad física del aula.</small>
+      </div>
+    </div>
+
+    <div class="acciones-form">
+      <button class="btn-guardar" (click)="guardarParalelo()">Crear Paralelo</button>
+    </div>
+  </div>
+
+  <div class="card-formulario" *ngIf="nivelId">
+    <h3>Asignaturas y docentes del paralelo</h3>
+    <div class="campo">
+      <label>Paralelo a configurar</label>
+      <select [(ngModel)]="paraleloGestionId" (change)="cargarAsignaciones()">
+        <option value="">Selecciona un paralelo</option>
+        <option *ngFor="let paralelo of paralelos" [value]="paralelo.id">{{ paralelo.nombre }}</option>
+      </select>
+    </div>
+
+    <div *ngIf="paraleloGestionId" style="margin-top:18px">
+      <p *ngIf="detallesNivel.length" [style.color]="faltanAsignar === 0 ? '#166534' : '#9a3412'">
+        {{ faltanAsignar === 0 ? '✓ Todas las materias tienen docente.' : 'Falta asignar docente a ' + faltanAsignar + ' materia(s).' }}
+      </p>
+      <div *ngFor="let detalle of detallesNivel" style="display:grid;grid-template-columns:1fr 260px auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid #e5e7eb">
+        <strong>{{ detalle.asignatura?.codigo }} · {{ detalle.asignatura?.nombre }}</strong>
+        <ng-container *ngIf="!estaAsignada(detalle.id); else yaAsignada">
+          <select [(ngModel)]="docentePorDetalle[detalle.id]">
+            <option value="">Selecciona docente</option>
+            <option *ngFor="let docente of docentes" [value]="docente.id">{{ docente.nombres }} {{ docente.apellidos }}</option>
+          </select>
+          <button class="btn-guardar" (click)="asignarDocente(detalle)">Asignar</button>
+        </ng-container>
+        <ng-template #yaAsignada>
+          <span style="color:#166534">Asignada</span><span></span>
+        </ng-template>
+      </div>
+
+      <h4 *ngIf="asignaturasParalelo.length">Asignaciones actuales</h4>
+      <div *ngFor="let asignacion of asignaturasParalelo" style="display:flex;justify-content:space-between;padding:8px 0">
+        <span>{{ asignacion.detalleMalla?.asignatura?.nombre }} — {{ asignacion.docente?.nombres }} {{ asignacion.docente?.apellidos }}</span>
+        <button (click)="quitarAsignacion(asignacion)" style="background:#dc2626;color:#fff;border:0;border-radius:6px;padding:6px 10px">Quitar</button>
+      </div>
+    </div>
+  </div>
+  <div class="navegacion-flujo" *ngIf="configuracionCompleta">
+    <span>Cuando el paralelo tenga todas sus materias y docentes:</span>
+    <a class="btn-siguiente-flujo" routerLink="/matriculas/registrar">Ir a matricular estudiante →</a>
+  </div>
+</div>
