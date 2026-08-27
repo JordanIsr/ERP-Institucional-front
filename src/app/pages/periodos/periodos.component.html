@@ -1,0 +1,189 @@
+<div class="periodos-container">
+
+  <div class="periodos-header">
+    <h2>Gestión de Períodos Académicos</h2>
+
+    <p>
+      Crea y administra los períodos académicos del sistema
+    </p>
+  </div>
+
+  <div class="formulario-panel">
+
+    <h3>Nuevo Período</h3>
+
+    <div class="form-row">
+
+      <!-- CÓDIGO -->
+      <div class="campo">
+
+        <label>Código del período</label>
+
+        <input
+          type="text"
+          [(ngModel)]="nuevoPeriodo.codigo"
+          placeholder="Ej: 2026-1"
+          maxlength="6"
+        />
+
+      </div>
+
+      <!-- FECHA INICIO -->
+      <div class="campo">
+
+        <label>Fecha Inicio</label>
+
+        <input
+          type="date"
+          [(ngModel)]="nuevoPeriodo.fechaInicio"
+        />
+
+      </div>
+
+      <!-- FECHA FIN -->
+      <div class="campo">
+
+        <label>Fecha Fin</label>
+
+        <input
+          type="date"
+          [(ngModel)]="nuevoPeriodo.fechaFin"
+        />
+
+      </div>
+
+      <!-- BOTÓN -->
+      <div class="campo campo-boton">
+
+        <button
+          class="btn btn-crear"
+          (click)="crearPeriodo()"
+        >
+          Crear Período
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- CARGANDO -->
+
+  <div
+    class="estado-carga"
+    *ngIf="cargando"
+  >
+    Cargando períodos...
+  </div>
+
+  <!-- TABLA -->
+
+  <div
+    class="tabla-panel"
+    *ngIf="!cargando"
+  >
+
+    <div
+      class="sin-datos"
+      *ngIf="periodos.length === 0"
+    >
+      No hay períodos académicos registrados todavía.
+    </div>
+
+    <table
+      class="tabla-periodos"
+      *ngIf="periodos.length > 0"
+    >
+
+      <thead>
+
+        <tr>
+
+          <th>Código</th>
+
+          <th>Fecha Inicio</th>
+
+          <th>Fecha Fin</th>
+
+          <th>Estado</th>
+
+          <th>Acciones</th>
+
+        </tr>
+
+      </thead>
+
+      <tbody>
+
+        <tr
+          *ngFor="let periodo of periodos"
+        >
+
+          <td>
+            <strong>
+              {{ periodo.codigo }}
+            </strong>
+          </td>
+
+          <td>
+            {{ periodo.fechaInicio | date:'dd/MM/yyyy' }}
+          </td>
+
+          <td>
+            {{ periodo.fechaFin | date:'dd/MM/yyyy' }}
+          </td>
+
+          <td>
+
+            <span
+              class="badge-estado"
+              [ngClass]="
+                periodo.activo
+                  ? 'activo'
+                  : 'inactivo'
+              "
+            >
+              {{
+                periodo.activo
+                  ? 'Activo'
+                  : 'Inactivo'
+              }}
+            </span>
+
+          </td>
+
+          <td>
+
+            <button
+              class="btn btn-estado"
+              (click)="cambiarEstado(periodo)"
+              [disabled]="
+                guardandoId === periodo.id
+              "
+            >
+              {{
+                periodo.activo
+                  ? 'Desactivar'
+                  : 'Activar'
+              }}
+            </button>
+
+            <button
+              class="btn btn-eliminar"
+              (click)="eliminarPeriodo(periodo)"
+            >
+              Eliminar
+            </button>
+
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>
