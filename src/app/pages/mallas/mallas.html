@@ -1,0 +1,425 @@
+<div class="mallas-page">
+  <header class="hero">
+    <div><span>Configuración académica</span><h1>Mallas curriculares</h1><p>Administra en un solo lugar la malla, sus carreras, niveles y asignaturas.</p></div>
+    <div class="jerarquia"><b>Malla</b><i>→</i><b>Carrera</b><i>→</i><b>Nivel</b><i>→</i><b>Asignatura</b></div>
+  </header>
+
+  <div class="alert error" *ngIf="error">{{ error }}</div>
+  <div class="alert success" *ngIf="mensaje">{{ mensaje }}</div>
+
+  <section class="panel formulario-malla">
+    <div class="panel-title"><div><small>Paso 1</small><h2>{{ editandoMalla ? 'Editar malla' : 'Crear malla general' }}</h2></div><button class="ghost" *ngIf="editandoMalla" (click)="cancelarMalla()">Cancelar edición</button></div>
+    <div class="form-grid malla-fields">
+      <label>Código de la malla *<input maxlength="30" [(ngModel)]="formularioMalla.codigo" (ngModelChange)="formularioMalla.codigo = $event.toUpperCase()" placeholder="Ej. 2027-I o MALLA-2027-I"><small>Si termina en AAAA-I/II, la fecha debe corresponder a ese semestre.</small></label>
+      <label>Fecha de inicio *<input type="date" [(ngModel)]="formularioMalla.fechaInicio"></label>
+      <label>Vigencia *<select [(ngModel)]="formularioMalla.duracionAnios"><option *ngFor="let anio of [1,2,3,4,5]" [ngValue]="anio">{{ anio }} año{{ anio === 1 ? '' : 's' }}</option></select></label>
+      <label>Fecha de fin<input [value]="fechaFinCalculada" readonly placeholder="Se calcula automáticamente"><small>Calculada según la vigencia elegida.</small></label>
+    </div>
+    <button class="primary" (click)="guardarMalla()" [disabled]="guardando">{{ guardando ? 'Guardando...' : (editandoMalla ? 'Guardar cambios' : 'Crear malla') }}</button>
+  </section>
+
+  <section class="panel listado-mallas">
+    <div class="panel-title"><div><small>Mallas registradas</small><h2>Seleccione una malla</h2></div><span class="counter">{{ mallas.length }}</span></div>
+    <p class="empty" *ngIf="cargando">Cargando mallas...</p>
+    <p class="empty" *ngIf="!cargando && mallas.length === 0">Todavía no existen mallas. Cree la primera con el formulario superior.</p>
+    <div class="malla-cards">
+      <article *ngFor="let malla of mallas" (click)="seleccionarMalla(malla)" [class.selected]="mallaSeleccionada?.id === malla.id">
+        <div class="card-top"><strong>{{ malla.codigo }}</strong><span [attr.data-state]="malla.estado">{{ malla.estado }}</span></div>
+        <p>{{ malla.fechaInicio }} — {{ malla.fechaFin }}</p><small>{{ malla.duracionAnios }} año(s) · {{ malla.carreras.length }} carrera(s)</small>
+        <div class="card-actions">
+  <button
+    (click)="
+      $event.stopPropagation();
+      editarMalla(malla)
+    "
+  >
+    Editar
+  </button>
+
+  <button
+    class="danger"
+    (click)="
+      $event.stopPropagation();
+      eliminarMalla(malla)
+    "
+  >
+    Eliminar
+  </button>
+</div>
+      </article>
+    </div>
+  </section>
+
+  <ng-container *ngIf="mallaSeleccionada as malla">
+    <section class="panel carreras-panel">
+      <div class="panel-title"><div><small>Paso 2 · {{ malla.codigo }}</small><h2>Carreras de la malla</h2><p>La cantidad indicada crea automáticamente los niveles de la carrera.</p></div><button class="activate" *ngIf="malla.estado === 'BORRADOR'" (click)="activarMalla()">Activar malla completa</button></div>
+      <div class="form-grid carrera-fields" *ngIf="malla.estado === 'BORRADOR'">
+        <label>Nombre de la carrera *<input maxlength="100" [(ngModel)]="formularioCarrera.nombre" placeholder="Ej. Desarrollo de Software"></label>
+        <label>Código *<input maxlength="12" [(ngModel)]="formularioCarrera.codigo" (ngModelChange)="formularioCarrera.codigo = $event.toUpperCase()" placeholder="Ej. DS"></label>
+        <label>Cantidad de niveles *<input type="number" inputmode="numeric" min="1" max="20" step="1" (keydown)="bloquearNoEnteros($event)" [(ngModel)]="formularioCarrera.cantidadNiveles"></label>
+        <div class="form-action"><button class="primary" (click)="guardarCarrera()" [disabled]="guardando">{{ carreraEditandoId ? 'Actualizar carrera' : 'Agregar carrera' }}</button><button class="ghost" *ngIf="carreraEditandoId" (click)="cancelarCarrera()">Cancelar</button></div>
+      </div>
+
+      <div class="carrera-list">
+        <article *ngFor="let carrera of malla.carreras" [class.selected]="carreraSeleccionada?.id === carrera.id" (click)="seleccionarCarrera(carrera)">
+          <div><span>{{ carrera.codigo }}</span><strong>{{ carrera.nombre }}</strong><small>{{ carrera.cantidadNiveles }} nivel(es)</small></div>
+          <div class="row-actions" *ngIf="malla.estado === 'BORRADOR'"><button (click)="$event.stopPropagation(); editarCarrera(carrera)">Editar</button><button class="danger" (click)="$event.stopPropagation(); eliminarCarrera(carrera)">Eliminar</button></div>
+        </article>
+      </div>
+      <p class="empty" *ngIf="malla.carreras.length === 0">Esta malla todavía no contiene carreras.</p>
+    </section>
+
+    <section class="niveles-section" *ngIf="carreraSeleccionada as carrera">
+      <div class="section-heading"><div><small>Paso 3 · {{ carrera.codigo }}</small><h2>Niveles y asignaturas</h2><p>Defina el límite de asignaturas de cada nivel y complete su contenido.</p></div><span>{{ carrera.niveles.length }} niveles</span></div>
+      <div class="subject-filters">
+        <label>🔎 Filtrar por nivel
+          <select [(ngModel)]="nivelFiltro">
+            <option value="TODOS">Todos los niveles</option>
+            <option *ngFor="let nivel of carrera.niveles" [value]="nivel.id">{{ nivel.nombre }}</option>
+          </select>
+        </label>
+        <label>Buscar asignatura
+          <div class="search-box"><span>⌕</span><input [(ngModel)]="busquedaAsignatura" placeholder="Código, nombre o docente"></div>
+        </label>
+      </div>
+      <div class="levels-grid">
+        <article class="level-card" *ngFor="let nivel of nivelesVisibles">
+          <header><div><span>{{ nivel.numero }}</span><div><h3>{{ nivel.nombre }}</h3><small>{{ nivel.asignaturas.length }} de {{ nivel.cantidadAsignaturas }} asignaturas</small></div></div><b [class.complete]="nivel.asignaturas.length === nivel.cantidadAsignaturas">{{ nivel.asignaturas.length === nivel.cantidadAsignaturas ? 'Completo' : 'Pendiente' }}</b></header>
+          <div class="limit" *ngIf="malla.estado === 'BORRADOR'"><label>Límite del nivel<input type="number" inputmode="numeric" min="1" max="50" step="1" (keydown)="bloquearNoEnteros($event)" [(ngModel)]="nivel.cantidadAsignaturas"></label><button (click)="guardarLimite(nivel)">Guardar límite</button></div>
+          <div class="subjects">
+            <div class="subject" *ngFor="let asignatura of asignaturasVisibles(nivel)">
+              <ng-container *ngIf="asignaturaEditandoId !== asignatura.detalleId; else editarAsignaturaTpl"><div class="subject-data"><strong>{{ asignatura.nombre }}</strong><small>{{ asignatura.codigo }}</small><em [class.inactive]="asignatura.docente?.estado !== 'ACTIVO'">{{ asignatura.docente ? (asignatura.docente.apellidos + ' ' + asignatura.docente.nombres) : 'Sin docente' }}</em></div><div class="row-actions" *ngIf="malla.estado === 'BORRADOR'"><button (click)="comenzarEdicionAsignatura(asignatura)">Editar</button><button class="danger" (click)="eliminarAsignatura(asignatura)">Eliminar</button></div></ng-container>
+              <ng-template #editarAsignaturaTpl><div class="subject-edit"><input maxlength="30" [(ngModel)]="codigoAsignaturaEdicion" (ngModelChange)="codigoAsignaturaEdicion = $event.toUpperCase()" placeholder="Código"><input maxlength="120" [(ngModel)]="nombreAsignaturaEdicion" (ngModelChange)="nombreAsignaturaEdicion = $event.toUpperCase()" placeholder="Nombre"><select [(ngModel)]="docenteAsignaturaEdicion"><option value="">Seleccione docente activo</option><option *ngFor="let docente of docentesActivos" [value]="docente.id">{{ docente.apellidos }} {{ docente.nombres }} · {{ docente.cedula }}</option></select></div><div class="row-actions"><button (click)="guardarAsignatura()">Guardar</button><button class="ghost" (click)="cancelarEdicionAsignatura()">Cancelar</button></div></ng-template>
+            </div>
+            <p class="empty mini" *ngIf="nivel.asignaturas.length === 0">No hay asignaturas creadas.</p>
+            <p class="empty mini" *ngIf="nivel.asignaturas.length > 0 && asignaturasVisibles(nivel).length === 0">No existen asignaturas que coincidan con la búsqueda.</p>
+          </div>
+          <div class="add-subject" *ngIf="malla.estado === 'BORRADOR'"><input maxlength="30" [(ngModel)]="nuevoCodigoAsignatura[nivel.id]" (ngModelChange)="nuevoCodigoAsignatura[nivel.id] = $event.toUpperCase()" placeholder="Código"><input maxlength="120" [(ngModel)]="nuevaAsignatura[nivel.id]" (ngModelChange)="nuevaAsignatura[nivel.id] = $event.toUpperCase()" placeholder="Nombre de la asignatura"><select [(ngModel)]="nuevoDocenteAsignatura[nivel.id]"><option value="">Docente activo *</option><option *ngFor="let docente of docentesActivos" [value]="docente.id">{{ docente.apellidos }} {{ docente.nombres }} · {{ docente.cedula }}</option></select><button (click)="crearAsignatura(nivel)" [disabled]="nivel.asignaturas.length >= nivel.cantidadAsignaturas">Agregar</button></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel oferta-panel" *ngIf="carreraSeleccionada as carrera">
+      <div class="panel-title"><div><small>Paso 4 · {{ carrera.codigo }}</small><h2>Periodos, jornadas y paralelos</h2><p>Los paralelos se crean dentro de la malla. Cada uno hereda automáticamente las asignaturas y docentes del nivel.</p></div></div>
+      <div class="offer-warning" *ngIf="malla.estado === 'BORRADOR'">Complete y active la malla para poder crear ofertas y paralelos.</div>
+      <div class="offer-create" *ngIf="malla.estado !== 'BORRADOR'">
+        <label>Periodo académico *<select [(ngModel)]="formularioOferta.periodoId"><option value="">Seleccione periodo</option><option *ngFor="let periodo of periodos" [value]="periodo.id" [disabled]="periodo.estado === 'CERRADO'">{{ periodo.nombre }} · {{ periodo.estado }}</option></select></label>
+        <label>Jornada *<select [(ngModel)]="formularioOferta.jornada"><option value="">Seleccione jornada</option><option value="MATUTINA">MATUTINA</option><option value="VESPERTINA">VESPERTINA</option><option value="NOCTURNA">NOCTURNA</option></select></label>
+        <label>Centro de estudio *<select [(ngModel)]="formularioOferta.centroEstudioId"><option value="">Seleccione centro</option><option *ngFor="let centro of centros" [value]="centro.id">{{ centro.nombre }}</option></select></label>
+        <button class="primary" (click)="crearOferta()" [disabled]="guardando">Crear oferta</button>
+      </div>
+
+      <div class="parallel-config" *ngIf="malla.estado !== 'BORRADOR'">
+        <label>Oferta académica *<select [(ngModel)]="ofertaSeleccionadaId" (change)="seleccionarOferta(ofertaSeleccionadaId)"><option value="">Seleccione una oferta</option><option *ngFor="let oferta of ofertasDeCarrera" [value]="oferta.id">{{ oferta.periodo.nombre }} · {{ oferta.jornada }} · {{ oferta.centroEstudio.nombre }} · {{ oferta.estado }}</option></select></label>
+        <div class="parallel-form" *ngIf="ofertaSeleccionadaId">
+          <label>Nivel *<select [(ngModel)]="formularioParalelo.nivelId" [disabled]="!!paraleloEditandoId"><option value="">Seleccione nivel</option><option *ngFor="let nivel of carrera.niveles" [value]="nivel.id">{{ nivel.nombre }}</option></select></label>
+          <label>Paralelo *<input maxlength="30" [(ngModel)]="formularioParalelo.nombre" (ngModelChange)="formularioParalelo.nombre = $event.toUpperCase()" placeholder="Ej. A"></label>
+          <label>Cupo mínimo *<input type="number" inputmode="numeric" min="1" max="500" step="1" (keydown)="bloquearNoEnteros($event)" [(ngModel)]="formularioParalelo.cupoMinimo"></label>
+          <label>Cupo máximo *<input type="number" inputmode="numeric" min="1" max="500" step="1" (keydown)="bloquearNoEnteros($event)" [(ngModel)]="formularioParalelo.cupoMaximo"></label>
+          <div class="parallel-actions"><button class="primary" (click)="guardarParalelo()" [disabled]="guardando">{{ paraleloEditandoId ? 'Actualizar paralelo' : 'Crear paralelo' }}</button><button class="ghost" *ngIf="paraleloEditandoId" (click)="cancelarEdicionParalelo()">Cancelar</button></div>
+        </div>
+      </div>
+
+      <div
+  class="parallel-list"
+  *ngIf="ofertaSeleccionadaId"
+>
+  <article
+    *ngFor="let paralelo of paralelosConfigurados"
+    [class.selected-parallel]="
+      paraleloAsignaturasSeleccionado?.id ===
+      paralelo.id
+    "
+  >
+    <div>
+      <span>{{ paralelo.nivel.nombre }}</span>
+
+      <strong>
+        Paralelo {{ paralelo.nombre }}
+      </strong>
+
+      <small>
+        {{ paralelo.cuposOcupados }} ocupados ·
+        {{ paralelo.cuposDisponibles }} disponibles ·
+        mínimo {{ paralelo.cupoMinimo }} /
+        máximo {{ paralelo.cupoMaximo }}
+      </small>
+    </div>
+
+    <div class="row-actions">
+  <button
+    (click)="editarParalelo(paralelo)"
+  >
+    Editar
+  </button>
+
+  <button
+    class="manage"
+    (click)="
+      administrarAsignaturasParalelo(
+        paralelo
+      )
+    "
+  >
+    {{
+      paraleloAsignaturasSeleccionado?.id ===
+      paralelo.id
+        ? 'Cerrar'
+        : 'Asignaturas'
+    }}
+  </button>
+
+  <button
+    class="danger"
+    (click)="eliminarParalelo(paralelo)"
+  >
+    Eliminar
+  </button>
+</div>
+  </article>
+
+  <p
+    class="empty"
+    *ngIf="paralelosConfigurados.length === 0"
+  >
+    La oferta seleccionada todavía no tiene paralelos.
+  </p>
+</div>
+
+<section
+  class="parallel-subject-panel"
+  *ngIf="
+    paraleloAsignaturasSeleccionado as paralelo
+  "
+>
+  <div class="parallel-subject-heading">
+    <div>
+      <span>
+        {{ paralelo.nivel.nombre }}
+      </span>
+
+      <h3>
+        Asignaturas del paralelo
+        {{ paralelo.nombre }}
+      </h3>
+
+      <p>
+        El cambio de docente se aplicará solamente
+        a este período, nivel y paralelo.
+      </p>
+    </div>
+
+    <button
+      class="ghost"
+      (click)="cerrarAsignaturasParalelo()"
+    >
+      Cerrar
+    </button>
+  </div>
+
+  <p
+    class="empty"
+    *ngIf="cargandoAsignaturasParalelo"
+  >
+    Cargando asignaturas...
+  </p>
+
+  <p
+    class="empty"
+    *ngIf="
+      !cargandoAsignaturasParalelo &&
+      asignaturasDelParalelo.length === 0
+    "
+  >
+    Este paralelo todavía no contiene asignaturas.
+  </p>
+
+  <div
+    class="parallel-subject-list"
+    *ngIf="
+      !cargandoAsignaturasParalelo &&
+      asignaturasDelParalelo.length > 0
+    "
+  >
+    <article
+      class="parallel-subject"
+      *ngFor="
+        let asignacion of asignaturasDelParalelo
+      "
+    >
+      <div class="parallel-subject-data">
+        <span>
+          {{
+            asignacion.detalleMalla.asignatura
+              .codigo
+          }}
+        </span>
+
+        <strong>
+          {{
+            asignacion.detalleMalla.asignatura
+              .nombre
+          }}
+        </strong>
+
+        <small>
+          Docente actual:
+          {{ asignacion.docente.apellidos }}
+          {{ asignacion.docente.nombres }}
+        </small>
+      </div>
+
+      <div class="row-actions">
+        <button
+          (click)="iniciarCambioDocente(asignacion)"
+        >
+          Cambiar docente
+        </button>
+
+        <button
+          class="ghost"
+          (click)="
+            mostrarHistorialDocentes(asignacion)
+          "
+        >
+          {{
+            historialAsignaturaId ===
+            asignacion.id
+              ? 'Ocultar historial'
+              : 'Ver historial'
+          }}
+        </button>
+      </div>
+
+      <div
+        class="teacher-change-form"
+        *ngIf="
+          asignaturaCambioDocenteId ===
+          asignacion.id
+        "
+      >
+        <label>
+          Nuevo docente *
+
+          <select
+            [(ngModel)]="
+              nuevoDocenteCambioId
+            "
+          >
+            <option value="">
+              Seleccione un docente activo
+            </option>
+
+            <option
+              *ngFor="
+                let docente of docentesActivos
+              "
+              [value]="docente.id"
+              [disabled]="
+                docente.id ===
+                asignacion.docente.id
+              "
+            >
+              {{ docente.apellidos }}
+              {{ docente.nombres }} ·
+              {{ docente.cedula }}
+            </option>
+          </select>
+        </label>
+
+        <label>
+          Motivo del cambio *
+
+          <textarea
+            rows="3"
+            maxlength="300"
+            [(ngModel)]="
+              motivoCambioDocente
+            "
+            placeholder="Ej. Reemplazo por ausencia definitiva del docente"
+          ></textarea>
+        </label>
+
+        <div class="teacher-change-actions">
+          <button
+            class="primary"
+            (click)="guardarCambioDocente()"
+            [disabled]="guardandoCambioDocente"
+          >
+            {{
+              guardandoCambioDocente
+                ? 'Guardando...'
+                : 'Confirmar cambio'
+            }}
+          </button>
+
+          <button
+            class="ghost"
+            (click)="cancelarCambioDocente()"
+            [disabled]="guardandoCambioDocente"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+
+      <div
+        class="teacher-history"
+        *ngIf="
+          historialAsignaturaId ===
+          asignacion.id
+        "
+      >
+        <p
+          class="empty mini"
+          *ngIf="cargandoHistorialDocentes"
+        >
+          Cargando historial...
+        </p>
+
+        <p
+          class="empty mini"
+          *ngIf="
+            !cargandoHistorialDocentes &&
+            historialDocentes.length === 0
+          "
+        >
+          Esta asignatura todavía no tiene
+          cambios de docente.
+        </p>
+
+        <div
+          class="history-item"
+          *ngFor="
+            let cambio of historialDocentes
+          "
+        >
+          <div>
+            <strong>
+              {{ cambio.docenteAnterior.apellidos }}
+              {{ cambio.docenteAnterior.nombres }}
+            </strong>
+
+            <span>→</span>
+
+            <strong>
+              {{ cambio.docenteNuevo.apellidos }}
+              {{ cambio.docenteNuevo.nombres }}
+            </strong>
+          </div>
+
+          <p>{{ cambio.motivo }}</p>
+
+          <small>
+            {{
+              cambio.fechaCambio
+                | date: 'dd/MM/yyyy HH:mm'
+            }}
+            · Realizado por
+            {{ cambio.cambiadoPor.nombre }}
+          </small>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
