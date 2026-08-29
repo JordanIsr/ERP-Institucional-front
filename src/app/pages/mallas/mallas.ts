@@ -180,11 +180,71 @@ guardandoCambioDocente = false;
   }
 
   editarMalla(malla: MallaGeneral): void {
-    this.mallaSeleccionada = malla;
-    this.formularioMalla = { codigo: malla.codigo, fechaInicio: malla.fechaInicio, duracionAnios: malla.duracionAnios };
-    this.editandoMalla = true;
-    this.limpiarMensajes();
+  this.limpiarMensajes();
+
+  if (malla.estado === 'HISTORICA') {
+    this.error =
+      'Una malla histórica no puede volver a planificación porque contiene información académica anterior.';
+    return;
   }
+
+  if (malla.estado === 'BORRADOR') {
+    this.prepararEdicionMalla(malla);
+    return;
+  }
+
+  const confirmar = confirm(
+    `¿Volver la malla ${malla.codigo} a planificación? Podrá agregar, editar o eliminar carreras, niveles y asignaturas. Después deberá activarla nuevamente.`,
+  );
+
+  if (!confirmar) {
+    return;
+  }
+
+  this.guardando = true;
+
+  this.service
+    .reabrirPlanificacionMalla(malla.id)
+    .subscribe({
+      next: (mallaEditable: MallaGeneral) => {
+        this.guardando = false;
+
+        this.mensaje =
+          'La malla volvió a planificación. Ahora puede editar toda su estructura. Recuerde activarla nuevamente al terminar.';
+
+        this.prepararEdicionMalla(
+          mallaEditable,
+        );
+
+        this.cargarMallas(mallaEditable.id);
+      },
+
+      error: (e) => {
+        this.guardando = false;
+
+        this.error = this.mensajeError(
+          e,
+          'No se pudo volver la malla a planificación.',
+        );
+      },
+    });
+}
+
+private prepararEdicionMalla(
+  malla: MallaGeneral,
+): void {
+  this.mallaSeleccionada = malla;
+
+  this.carreraSeleccionada = null;
+
+  this.formularioMalla = {
+    codigo: malla.codigo,
+    fechaInicio: malla.fechaInicio,
+    duracionAnios: malla.duracionAnios,
+  };
+
+  this.editandoMalla = true;
+}
 
   cancelarMalla(): void { this.editandoMalla = false; this.formularioMalla = { codigo: '', fechaInicio: '', duracionAnios: 1 }; }
 

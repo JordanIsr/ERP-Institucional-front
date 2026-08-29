@@ -24,7 +24,15 @@
     <p class="empty" *ngIf="!cargando && mallas.length === 0">Todavía no existen mallas. Cree la primera con el formulario superior.</p>
     <div class="malla-cards">
       <article *ngFor="let malla of mallas" (click)="seleccionarMalla(malla)" [class.selected]="mallaSeleccionada?.id === malla.id">
-        <div class="card-top"><strong>{{ malla.codigo }}</strong><span [attr.data-state]="malla.estado">{{ malla.estado }}</span></div>
+        <div class="card-top"><strong>{{ malla.codigo }}</strong>
+          <span [attr.data-state]="malla.estado">
+  {{
+    malla.estado === 'BORRADOR'
+      ? 'PLANIFICACIÓN'
+      : malla.estado
+  }}
+</span>
+        </div>
         <p>{{ malla.fechaInicio }} — {{ malla.fechaFin }}</p><small>{{ malla.duracionAnios }} año(s) · {{ malla.carreras.length }} carrera(s)</small>
         <div class="card-actions">
   <button

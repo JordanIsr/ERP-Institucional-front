@@ -25,6 +25,17 @@ export class EstructuraAcademicaService {
   editarMallaGeneral(id: string, data: { codigo?: string; fechaInicio?: string; duracionAnios?: number }): Observable<any> {
     return this.http.patch(`${this.apiUrl}/mallas-generales/${id}`, data, { headers: this.headers() });
   }
+  reabrirPlanificacionMalla(
+  id: string,
+): Observable<any> {
+  return this.http.patch(
+    `${this.apiUrl}/mallas-generales/${id}/reabrir-planificacion`,
+    {},
+    {
+      headers: this.headers(),
+    },
+  );
+}
   activarMallaGeneral(id: string): Observable<any> {
     return this.http.patch(`${this.apiUrl}/mallas-generales/${id}/activar`, {}, { headers: this.headers() });
   }
