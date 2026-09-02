@@ -1,9 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import {
-  FormBuilder,
-  Validators,
-  ReactiveFormsModule,
-} from '@angular/forms';
+import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -317,84 +313,115 @@ export class Matriculas implements OnInit {
   // ==============================
 
   registrar(): void {
+  this.errorGeneral = '';
+  this.mensajeExito = '';
 
-    this.matriculaForm.markAllAsTouched();
+  this.matriculaForm.markAllAsTouched();
 
-    if (
-      this.matriculaForm.invalid ||
-      !this.carreraId ||
-      !this.periodoId ||
-      !this.mallaId ||
-      !this.nivelId ||
-      !this.jornada ||
-      !this.periodoCarreraId ||
-      !this.paraleloId
-    ) {
+  if (
+    this.matriculaForm.invalid ||
+    !this.carreraId ||
+    !this.periodoId ||
+    !this.mallaId ||
+    !this.nivelId ||
+    !this.jornada ||
+    !this.periodoCarreraId ||
+    !this.paraleloId
+  ) {
+    this.errorGeneral =
+      this.erroresMatricula().join('\n');
 
-      alert(this.erroresMatricula().join('\n'));
-
-      return;
-    }
-
-    this.guardando = true;
-    this.errorGeneral = '';
-    this.mensajeExito = '';
-
-    const datos = {
-      cedula:
-        this.matriculaForm.value.cedula!,
-
-      nombres:
-        this.matriculaForm.value.nombres!,
-
-      apellidos:
-        this.matriculaForm.value.apellidos!,
-
-      correo:
-        this.matriculaForm.value.correo!,
-
-      telefono: this.matriculaForm.value.telefono!,
-      periodoCarreraId: this.periodoCarreraId,
-      paraleloId: this.paraleloId,
-    };
-
-    this.matriculasService
-      .crearNuevaConEstudiante(datos)
-      .subscribe({
-        next: () => {
-          this.guardando = false;
-          this.mensajeExito = `Estudiante y matrícula registrados correctamente para ${datos.nombres} ${datos.apellidos}.`;
-          this.limpiarFormulario(false);
-        },
-
-        error: (error) => {
-
-          this.guardando = false;
-
-          console.error(
-            'Error al registrar estudiante:',
-            error
-          );
-
-          if (error.status === 409) {
-
-            this.errorGeneral = this.mensajeError(error, 'Ya existe una matrícula o estudiante incompatible con este registro.');
-
-            return;
-          }
-
-          if (error.status === 400) {
-
-            this.errorGeneral = this.mensajeError(error, 'Los datos enviados no son válidos.');
-
-            return;
-          }
-
-          this.errorGeneral = this.mensajeError(error, 'No se pudo registrar al estudiante y su matrícula. No se guardó información incompleta.');
-        },
-
-      });
+    window.alert(this.errorGeneral);
+    return;
   }
+
+  const paralelo =
+    this.paraleloSeleccionado;
+
+  if (!paralelo?.disponible) {
+    this.errorGeneral =
+      paralelo?.motivoNoDisponible
+      ?? 'El paralelo seleccionado no está disponible para matrícula.';
+
+    window.alert(this.errorGeneral);
+    return;
+  }
+
+  const datos = {
+    cedula:
+      this.matriculaForm.value.cedula!,
+
+    nombres:
+      this.matriculaForm.value.nombres!,
+
+    apellidos:
+      this.matriculaForm.value.apellidos!,
+
+    correo:
+      this.matriculaForm.value.correo!,
+
+    telefono:
+      this.matriculaForm.value.telefono!,
+
+    periodoCarreraId:
+      this.periodoCarreraId,
+
+    paraleloId:
+      this.paraleloId,
+  };
+
+  this.guardando = true;
+
+  this.matriculasService
+    .crearNuevaConEstudiante(datos)
+    .subscribe({
+      next: () => {
+        this.guardando = false;
+
+        this.mensajeExito =
+          `Estudiante ${datos.nombres} ${datos.apellidos} matriculado correctamente.`;
+
+        window.alert(
+          this.mensajeExito,
+        );
+
+        this.limpiarFormulario(false);
+      },
+
+      error: (error) => {
+        this.guardando = false;
+
+        console.error(
+          'Error al registrar estudiante:',
+          error,
+        );
+
+        if (error.status === 409) {
+          this.errorGeneral =
+            this.mensajeError(
+              error,
+              'El estudiante ya existe o ya posee una matrícula para esta oferta académica.',
+            );
+        } else if (error.status === 400) {
+          this.errorGeneral =
+            this.mensajeError(
+              error,
+              'No se pudo matricular porque los datos enviados no son válidos.',
+            );
+        } else {
+          this.errorGeneral =
+            this.mensajeError(
+              error,
+              'No se pudo registrar al estudiante y su matrícula. No se guardó información incompleta.',
+            );
+        }
+
+        window.alert(
+          this.errorGeneral,
+        );
+      },
+    });
+}
 
   private erroresMatricula(): string[] {
     if (this.ofertas.length === 0) return [this.mensajeConfiguracionOferta];

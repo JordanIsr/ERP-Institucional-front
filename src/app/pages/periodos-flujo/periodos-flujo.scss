@@ -176,21 +176,6 @@
   }
 }
 
-.edicion-inline {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-  width: 100%;
-
-  input, select {
-    padding: 7px 10px;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    font-size: 13px;
-  }
-}
-
 .tarjeta-asignatura {
   background: #fff;
   border: 1px solid #e2e8f0;
@@ -207,4 +192,98 @@
 
   strong { font-size: 14.5px; color: #1e293b; display: block; }
   .docente-label { font-size: 12.5px; color: #64748b; }
+}
+
+.campo-calculado {
+  background: #f1f5f9;
+  color: #475569;
+  cursor: not-allowed;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.edicion-inline {
+  display: grid;
+  grid-template-columns:
+    minmax(90px, 0.7fr)
+    minmax(180px, 1.2fr)
+    minmax(120px, 1fr)
+    minmax(145px, 1fr)
+    minmax(145px, 1fr)
+    minmax(140px, 1fr)
+    auto;
+  gap: 10px;
+  align-items: end;
+  width: 100%;
+}
+
+.campo-edicion {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+
+  label {
+    min-height: 15px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+  }
+
+  input,
+  select {
+    width: 100%;
+    min-height: 38px;
+    padding: 8px 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 7px;
+    box-sizing: border-box;
+    font-size: 13px;
+
+    &:focus {
+      outline: none;
+      border-color: #4f46e5;
+    }
+  }
+}
+
+.acciones-edicion {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+
+@media (max-width: 1050px) {
+  .edicion-inline {
+    grid-template-columns: repeat(3, minmax(160px, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .flujo-container {
+    padding: 14px;
+  }
+
+  .fila-form,
+  .edicion-inline {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .acciones-edicion {
+    width: 100%;
+
+    .btn {
+      flex: 1;
+    }
+  }
+
+  .tarjeta {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
 }

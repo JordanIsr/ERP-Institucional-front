@@ -303,12 +303,16 @@
       </button>
 
       <button
-        type="submit"
-        class="btn btn-primary"
-        [disabled]="guardando || ofertas.length === 0 || !paraleloSeleccionado?.disponible"
-      >
-        {{ guardando ? 'Creando matrícula...' : 'Registrar y matricular' }}
-      </button>
+  type="submit"
+  class="btn btn-primary"
+  [disabled]="guardando"
+>
+  {{
+    guardando
+      ? 'Creando matrícula...'
+      : 'Registrar y matricular'
+  }}
+</button>
 
     </div>
 

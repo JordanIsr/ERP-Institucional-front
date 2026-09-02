@@ -1,8 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import {
-  HttpClient,
-  HttpHeaders,
-} from '@angular/common/http';
+import {HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface Estudiante {

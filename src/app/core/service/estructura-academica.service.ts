@@ -149,10 +149,10 @@ export class EstructuraAcademicaService {
   agregarAsignaturaANivel(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/detalle-malla`, data, { headers: this.headers() });
   }
-  crearAsignaturaEnNivel(data: { nivelId: string; codigo: string; nombre: string; docenteId: string }): Observable<any> {
+  crearAsignaturaEnNivel(data: { nivelId: string; codigo: string; nombre: string }): Observable<any> {
     return this.http.post(`${this.apiUrl}/detalle-malla/asignatura`, data, { headers: this.headers() });
   }
-  editarAsignaturaEnNivel(detalleId: string, data: { codigo: string; nombre: string; docenteId: string }): Observable<any> {
+  editarAsignaturaEnNivel(detalleId: string, data: { codigo: string; nombre: string }): Observable<any> {
     return this.http.patch(`${this.apiUrl}/detalle-malla/${detalleId}/asignatura`, data, { headers: this.headers() });
   }
   moverAsignaturaDeNivel(detalleId: string, nivelId: string): Observable<any> {
@@ -216,7 +216,7 @@ export class EstructuraAcademicaService {
   listarAsignaturaParalelo(paraleloId: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/asignatura-paralelo?paraleloId=${paraleloId}`, { headers: this.headers() });
   }
-  agregarAsignaturaAParalelo(data: any): Observable<any> {
+  agregarAsignaturaAParalelo(data: { paraleloId: string; detalleMallaId: string; docenteId: string }): Observable<any> {
     return this.http.post(`${this.apiUrl}/asignatura-paralelo`, data, { headers: this.headers() });
   }
 

@@ -8,7 +8,7 @@ import { Users } from './pages/users/users';
 import { Matriculas } from './pages/matriculas/matriculas';
 import { BuscarEstudiantes } from './pages/matriculas/buscar-estudiantes/buscar-estudiantes';
 import { HistorialAcademico } from './pages/historial-academico/historial-academico';
-import { PeriodosFlujo } from './pages/oferta-academica/periodos-flujo/periodos-flujo';
+import { PeriodosFlujo } from './pages/periodos-flujo/periodos-flujo';
 import { SolicitudesMatriculas } from './pages/matriculas/solicitudes-matriculas/solicitudes-matriculas';
 import { RevisionSolicitudes } from './pages/matriculas/revision-solicitudes/revision-solicitudes';
 import { RegistarNotas } from './pages/registrar-notas/registrar-notas';

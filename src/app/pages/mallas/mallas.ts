@@ -4,16 +4,88 @@ import { FormsModule } from '@angular/forms';
 import { EstructuraAcademicaService } from '../../core/service/estructura-academica.service';
 
 interface DocenteMalla { id: string; cedula: string; nombres: string; apellidos: string; estado: 'ACTIVO' | 'INACTIVO'; }
-interface AsignaturaMalla { detalleId: string; id: string; codigo: string; nombre: string; docente: DocenteMalla | null; }
-interface NivelMalla { id: string; numero: number; nombre: string; cantidadAsignaturas: number; asignaturas: AsignaturaMalla[]; }
-interface CarreraMalla { id: string; nombre: string; codigo: string; cantidadNiveles: number; estado: string; versionMallaId: string; niveles: NivelMalla[]; }
-interface MallaGeneral { id: string; codigo: string; fechaInicio: string; fechaFin: string; duracionAnios: number; estado: string; carreras: CarreraMalla[]; }
-interface PeriodoConfig { id: string; nombre: string; estado: string; }
+interface AsignaturaMalla {
+  detalleId: string;
+  id: string;
+  codigo: string;
+  nombre: string;
+  editable: boolean;
+  motivoBloqueo: string | null;
+}
+interface NivelMalla {
+  id: string;
+  numero: number;
+  nombre: string;
+  cantidadAsignaturas: number;
+  asignaturas: AsignaturaMalla[];
+  editable: boolean;
+  motivoBloqueo: string | null;
+}
+interface CarreraMalla {
+  id: string;
+  nombre: string;
+  codigo: string;
+  cantidadNiveles: number;
+  estado: string;
+  versionMallaId: string;
+
+  editableIdentidad: boolean;
+  motivoBloqueoIdentidad: string | null;
+
+  editableCantidadNiveles: boolean;
+  motivoBloqueoCantidadNiveles: string | null;
+
+  niveles: NivelMalla[];
+}
+interface MallaGeneral {
+  id: string;
+  codigo: string;
+  fechaInicio: string;
+  fechaFin: string;
+  duracionAnios: number;
+  estado: string;
+
+  editableDatosGenerales: boolean;
+  motivoBloqueoDatosGenerales: string | null;
+
+  permiteAgregarEstructura: boolean;
+  motivoBloqueoEstructura: string | null;
+
+  carreras: CarreraMalla[];
+}
+interface PeriodoConfig { id: string; nombre: string; fechaInicio: string; fechaFin: string; estado: string; }
 interface CentroConfig { id: string; nombre: string; estado: string; }
 interface OfertaConfig { id: string; periodo: PeriodoConfig; carrera: CarreraMalla; versionMalla: { id: string; version: string }; centroEstudio: CentroConfig; jornada: string; estado: string; }
 interface ParaleloConfig { id: string; nombre: string; nivel: NivelMalla; cupoMinimo: number; cupoMaximo: number; cuposOcupados: number; cuposDisponibles: number; }
-interface AsignaturaParaleloConfig { id: string; docente: DocenteMalla; detalleMalla: { id: string; asignatura: { id: string; codigo: string; nombre: string;}
+interface AsignaturaAperturaResumen {
+  detalleId: string;
+  codigo: string;
+  nombre: string;
+  docente: DocenteMalla | null;
+}
+interface AperturaNivelResumen {
+  ofertaId: string;
+  periodoNombre: string;
+  periodoFechaInicio: string;
+  periodoFechaFin: string;
+  jornada: string;
+  centroNombre: string;
+  paraleloNombre: string;
+  cupoMinimo: number;
+  cupoMaximo: number;
+  cuposOcupados: number;
+  cuposDisponibles: number;
+  asignaturas: AsignaturaAperturaResumen[];
+}
+interface AsignaturaParaleloConfig { id: string; docente: DocenteMalla | null ; detalleMalla: { id: string; asignatura: { id: string; codigo: string; nombre: string;}
   };
+}
+interface AsignaturaParaleloVista {
+  detalleId: string;
+  codigo: string;
+  nombre: string;
+  asignacion: AsignaturaParaleloConfig | null;
+  docenteId: string;
 }
 
 interface HistorialDocenteConfig {
@@ -43,17 +115,21 @@ export class Mallas implements OnInit {
   mallas: MallaGeneral[] = [];
   mallaSeleccionada: MallaGeneral | null = null;
   carreraSeleccionada: CarreraMalla | null = null;
+  filtroEstadoMalla = '';
+  busquedaMalla = '';
+  modoGestionActiva = false;
+  aperturasPorNivel: Record<string, AperturaNivelResumen[]> = {};
+  cargandoResumenMalla = false;
+  private cargaResumenId = 0;
   formularioMalla = { codigo: '', fechaInicio: '', duracionAnios: 1 };
   formularioCarrera = { nombre: '', codigo: '', cantidadNiveles: 1 };
   editandoMalla = false;
   carreraEditandoId = '';
   nuevaAsignatura: Record<string, string> = {};
   nuevoCodigoAsignatura: Record<string, string> = {};
-  nuevoDocenteAsignatura: Record<string, string> = {};
   asignaturaEditandoId = '';
   codigoAsignaturaEdicion = '';
   nombreAsignaturaEdicion = '';
-  docenteAsignaturaEdicion = '';
   docentesActivos: DocenteMalla[] = [];
   nivelFiltro = 'TODOS';
   busquedaAsignatura = '';
@@ -68,8 +144,8 @@ export class Mallas implements OnInit {
   paraleloAsignaturasSeleccionado:
   ParaleloConfig | null = null;
 
-asignaturasDelParalelo:
-  AsignaturaParaleloConfig[] = [];
+asignaturasDelParalelo: AsignaturaParaleloVista[] = [];
+guardandoAsignacionDetalleId = '';
 
 asignaturaCambioDocenteId = '';
 nuevoDocenteCambioId = '';
@@ -93,6 +169,39 @@ guardandoCambioDocente = false;
     this.cargarConfiguracionOferta();
   }
 
+  get mallasFiltradas(): MallaGeneral[] {
+    if (!this.filtroEstadoMalla) return [];
+
+    const texto = this.busquedaMalla.trim().toUpperCase();
+
+    return this.mallas.filter((malla) => {
+      const coincideEstado = malla.estado === this.filtroEstadoMalla;
+      const coincideTexto = !texto || malla.codigo.toUpperCase().includes(texto);
+      return coincideEstado && coincideTexto;
+    });
+  }
+
+  get totalCarrerasResumen(): number {
+    return this.mallaSeleccionada?.carreras.length ?? 0;
+  }
+
+  get totalNivelesResumen(): number {
+    return (this.mallaSeleccionada?.carreras ?? [])
+      .reduce((total, carrera) => total + carrera.niveles.length, 0);
+  }
+
+  get totalAsignaturasResumen(): number {
+    return (this.mallaSeleccionada?.carreras ?? [])
+      .reduce(
+        (totalCarreras, carrera) => totalCarreras
+          + carrera.niveles.reduce(
+            (totalNiveles, nivel) => totalNiveles + nivel.asignaturas.length,
+            0,
+          ),
+        0,
+      );
+  }
+
   get nivelesVisibles(): NivelMalla[] {
     const niveles = this.carreraSeleccionada?.niveles ?? [];
     if (this.nivelFiltro === 'TODOS') return niveles;
@@ -104,10 +213,50 @@ guardandoCambioDocente = false;
     if (!texto) return nivel.asignaturas;
     return nivel.asignaturas.filter((asignatura) =>
       asignatura.nombre.includes(texto)
-      || asignatura.codigo.includes(texto)
-      || `${asignatura.docente?.nombres ?? ''} ${asignatura.docente?.apellidos ?? ''}`.toUpperCase().includes(texto),
+      || asignatura.codigo.includes(texto),
     );
   }
+
+  get periodosDisponibles(): PeriodoConfig[] {
+  const malla = this.mallaSeleccionada;
+
+  if (!malla) {
+    return [];
+  }
+
+  const inicioMalla = String(
+    malla.fechaInicio,
+  ).slice(0, 10);
+
+  const finMalla = String(
+    malla.fechaFin,
+  ).slice(0, 10);
+
+  return this.periodos.filter((periodo) => {
+    const inicioPeriodo = String(
+      periodo.fechaInicio,
+    ).slice(0, 10);
+
+    const finPeriodo = String(
+      periodo.fechaFin,
+    ).slice(0, 10);
+
+    const estadoPermitido =
+      periodo.estado !== 'CERRADO';
+
+    const iniciaDentroDeLaMalla =
+      inicioPeriodo >= inicioMalla;
+
+    const finalizaDentroDeLaMalla =
+      finPeriodo <= finMalla;
+
+    return (
+      estadoPermitido &&
+      iniciaDentroDeLaMalla &&
+      finalizaDentroDeLaMalla
+    );
+  });
+}
 
   get ofertasDeCarrera(): OfertaConfig[] {
     if (!this.carreraSeleccionada) return [];
@@ -128,28 +277,242 @@ guardandoCambioDocente = false;
     return fecha.toISOString().slice(0, 10);
   }
 
-  cargarMallas(seleccionarId?: string): void {
-    this.cargando = true;
-    this.service.listarMallasGenerales().subscribe({
-      next: (mallas: MallaGeneral[]) => {
-        this.mallas = mallas;
-        this.cargando = false;
-        const id = seleccionarId ?? this.mallaSeleccionada?.id;
-        this.mallaSeleccionada = id ? mallas.find((malla) => malla.id === id) ?? null : null;
-        if (this.carreraSeleccionada && this.mallaSeleccionada) {
-          this.carreraSeleccionada = this.mallaSeleccionada.carreras.find((c) => c.id === this.carreraSeleccionada?.id) ?? null;
-        }
-      },
-      error: (e) => { this.cargando = false; this.error = this.mensajeError(e, 'No se pudieron cargar las mallas.'); },
-    });
-  }
+  cargarMallas(
+  seleccionarMallaId?: string,
+  seleccionarCarreraId?: string,
+): void {
+  /*
+   * Guardamos los identificadores antes de realizar
+   * la petición para restaurar la selección después.
+   */
+  const mallaId =
+    seleccionarMallaId
+    ?? this.mallaSeleccionada?.id
+    ?? '';
 
+  const carreraId =
+    seleccionarCarreraId
+    ?? this.carreraSeleccionada?.id
+    ?? '';
+
+  this.cargando = true;
+
+  this.service.listarMallasGenerales().subscribe({
+    next: (mallas: MallaGeneral[]) => {
+      this.mallas = mallas;
+
+      const mallaActual = mallaId
+        ? mallas.find(
+            (malla) => malla.id === mallaId,
+          ) ?? null
+        : null;
+
+      this.mallaSeleccionada = mallaActual;
+
+      this.carreraSeleccionada =
+        mallaActual && carreraId
+          ? mallaActual.carreras.find(
+              (carrera) =>
+                carrera.id === carreraId,
+            ) ?? null
+          : null;
+
+      this.cargando = false;
+
+      if (
+        mallaActual &&
+        mallaActual.estado !== 'BORRADOR'
+      ) {
+        this.cargarResumenMalla(mallaActual);
+      } else {
+        this.aperturasPorNivel = {};
+        this.cargandoResumenMalla = false;
+      }
+    },
+
+    error: (e) => {
+      this.cargando = false;
+
+      this.error = this.mensajeError(
+        e,
+        'No se pudieron cargar las mallas.',
+      );
+    },
+  });
+}
   seleccionarMalla(malla: MallaGeneral): void {
     this.mallaSeleccionada = malla;
     this.carreraSeleccionada = null;
     this.cancelarMalla();
     this.cancelarCarrera();
+    this.modoGestionActiva = false;
     this.limpiarMensajes();
+
+    if (malla.estado !== 'BORRADOR') {
+      this.cargarResumenMalla(malla);
+    } else {
+      this.aperturasPorNivel = {};
+      this.cargandoResumenMalla = false;
+    }
+  }
+
+  cambiarFiltroEstado(estado: string): void {
+    this.filtroEstadoMalla = estado;
+    this.busquedaMalla = '';
+    this.mallaSeleccionada = null;
+    this.carreraSeleccionada = null;
+    this.modoGestionActiva = false;
+    this.aperturasPorNivel = {};
+    this.cancelarMalla();
+    this.cancelarCarrera();
+    this.limpiarMensajes();
+  }
+
+  alternarGestionActiva(): void {
+    const malla = this.mallaSeleccionada;
+    if (!malla || malla.estado !== 'ACTIVA') return;
+
+    this.modoGestionActiva = !this.modoGestionActiva;
+    this.carreraSeleccionada = null;
+    this.cancelarCarrera();
+    this.cancelarEdicionAsignatura();
+
+    if (!this.modoGestionActiva) {
+      this.cargarResumenMalla(malla);
+    }
+  }
+
+  aperturasDeNivel(nivelId: string): AperturaNivelResumen[] {
+    return this.aperturasPorNivel[nivelId] ?? [];
+  }
+
+  private cargarResumenMalla(malla: MallaGeneral): void {
+    const cargaId = ++this.cargaResumenId;
+    this.aperturasPorNivel = {};
+
+    if (malla.estado === 'BORRADOR') {
+      this.cargandoResumenMalla = false;
+      return;
+    }
+
+    const versiones = new Set(
+      malla.carreras.map((carrera) => carrera.versionMallaId),
+    );
+
+    const ofertasMalla = this.ofertas.filter(
+      (oferta) => versiones.has(oferta.versionMalla?.id),
+    );
+
+    if (ofertasMalla.length === 0) {
+      this.cargandoResumenMalla = false;
+      return;
+    }
+
+    this.cargandoResumenMalla = true;
+    let pendientes = ofertasMalla.length;
+
+    const terminarPeticion = (): void => {
+      pendientes -= 1;
+      if (pendientes > 0 || cargaId !== this.cargaResumenId) return;
+
+      Object.values(this.aperturasPorNivel).forEach((aperturas) => {
+        aperturas.sort((a, b) =>
+          a.periodoFechaInicio.localeCompare(b.periodoFechaInicio)
+          || a.paraleloNombre.localeCompare(b.paraleloNombre),
+        );
+      });
+
+      this.cargandoResumenMalla = false;
+    };
+
+    ofertasMalla.forEach((oferta) => {
+      this.service.listarParalelos(oferta.id).subscribe({
+        next: (paralelos: ParaleloConfig[]) => {
+          if (cargaId !== this.cargaResumenId) {
+            terminarPeticion();
+            return;
+          }
+
+          if (paralelos.length === 0) {
+            terminarPeticion();
+            return;
+          }
+
+          let paralelosPendientes = paralelos.length;
+
+          const terminarParalelo = (): void => {
+            paralelosPendientes -= 1;
+            if (paralelosPendientes === 0) terminarPeticion();
+          };
+
+          paralelos.forEach((paralelo) => {
+            this.service.listarAsignaturaParalelo(paralelo.id).subscribe({
+              next: (asignaciones: AsignaturaParaleloConfig[]) => {
+                if (cargaId !== this.cargaResumenId) return;
+
+                const nivelId = paralelo.nivel.id;
+                const nivel = malla.carreras
+                  .flatMap((carrera) => carrera.niveles)
+                  .find((item) => item.id === nivelId);
+
+                const asignaturas: AsignaturaAperturaResumen[] =
+                  (nivel?.asignaturas ?? []).map((asignatura) => {
+                    const asignacion = asignaciones.find(
+                      (item) => item.detalleMalla.id === asignatura.detalleId,
+                    );
+
+                    return {
+                      detalleId: asignatura.detalleId,
+                      codigo: asignatura.codigo,
+                      nombre: asignatura.nombre,
+                      docente: asignacion?.docente ?? null,
+                    };
+                  });
+
+                const apertura: AperturaNivelResumen = {
+                  ofertaId: oferta.id,
+                  periodoNombre: oferta.periodo.nombre,
+                  periodoFechaInicio: oferta.periodo.fechaInicio,
+                  periodoFechaFin: oferta.periodo.fechaFin,
+                  jornada: oferta.jornada,
+                  centroNombre: oferta.centroEstudio.nombre,
+                  paraleloNombre: paralelo.nombre,
+                  cupoMinimo: paralelo.cupoMinimo,
+                  cupoMaximo: paralelo.cupoMaximo,
+                  cuposOcupados: paralelo.cuposOcupados,
+                  cuposDisponibles: paralelo.cuposDisponibles,
+                  asignaturas,
+                };
+
+                this.aperturasPorNivel[nivelId] = [
+                  ...(this.aperturasPorNivel[nivelId] ?? []),
+                  apertura,
+                ];
+              },
+              error: (e) => {
+                if (cargaId === this.cargaResumenId) {
+                  this.error = this.mensajeError(
+                    e,
+                    `No se pudieron cargar las asignaturas del paralelo ${paralelo.nombre}.`,
+                  );
+                }
+                terminarParalelo();
+              },
+              complete: terminarParalelo,
+            });
+          });
+        },
+        error: (e) => {
+          if (cargaId === this.cargaResumenId) {
+            this.error = this.mensajeError(
+              e,
+              `No se pudieron cargar las aperturas de ${oferta.periodo.nombre}.`,
+            );
+          }
+          terminarPeticion();
+        },
+      });
+    });
   }
 
   guardarMalla(): void {
@@ -181,55 +544,18 @@ guardandoCambioDocente = false;
 
   editarMalla(malla: MallaGeneral): void {
   this.limpiarMensajes();
+  this.seleccionarMalla(malla);
 
-  if (malla.estado === 'HISTORICA') {
+  if (!malla.editableDatosGenerales) {
     this.error =
-      'Una malla histórica no puede volver a planificación porque contiene información académica anterior.';
+      malla.motivoBloqueoDatosGenerales
+      ?? 'Los datos generales de esta malla ya no pueden modificarse.';
     return;
   }
 
-  if (malla.estado === 'BORRADOR') {
-    this.prepararEdicionMalla(malla);
-    return;
-  }
-
-  const confirmar = confirm(
-    `¿Volver la malla ${malla.codigo} a planificación? Podrá agregar, editar o eliminar carreras, niveles y asignaturas. Después deberá activarla nuevamente.`,
-  );
-
-  if (!confirmar) {
-    return;
-  }
-
-  this.guardando = true;
-
-  this.service
-    .reabrirPlanificacionMalla(malla.id)
-    .subscribe({
-      next: (mallaEditable: MallaGeneral) => {
-        this.guardando = false;
-
-        this.mensaje =
-          'La malla volvió a planificación. Ahora puede editar toda su estructura. Recuerde activarla nuevamente al terminar.';
-
-        this.prepararEdicionMalla(
-          mallaEditable,
-        );
-
-        this.cargarMallas(mallaEditable.id);
-      },
-
-      error: (e) => {
-        this.guardando = false;
-
-        this.error = this.mensajeError(
-          e,
-          'No se pudo volver la malla a planificación.',
-        );
-      },
-    });
+  this.prepararEdicionMalla(malla);
 }
-
+  
 private prepararEdicionMalla(
   malla: MallaGeneral,
 ): void {
@@ -249,6 +575,15 @@ private prepararEdicionMalla(
   cancelarMalla(): void { this.editandoMalla = false; this.formularioMalla = { codigo: '', fechaInicio: '', duracionAnios: 1 }; }
 
   eliminarMalla(malla: MallaGeneral): void {
+    this.limpiarMensajes();
+
+    if (!malla.editableDatosGenerales) {
+      this.error =
+        malla.motivoBloqueoDatosGenerales
+        ?? 'Esta malla contiene información académica y no puede eliminarse.';
+      return;
+    }
+
     if (!confirm(`¿Eliminar la malla ${malla.codigo} y toda su estructura que todavía no esté en uso?`)) return;
     this.service.eliminarMallaGeneral(malla.id).subscribe({
       next: () => { this.mallaSeleccionada = null; this.carreraSeleccionada = null; this.mensaje = 'Malla eliminada correctamente.'; this.cargarMallas(); },
@@ -274,6 +609,12 @@ private prepararEdicionMalla(
       codigo: this.formularioCarrera.codigo.trim().toUpperCase(),
       cantidadNiveles: Number(this.formularioCarrera.cantidadNiveles),
     };
+    if (!this.carreraEditandoId && !malla.permiteAgregarEstructura) {
+  this.error =
+    malla.motivoBloqueoEstructura
+    ?? 'No se pueden agregar carreras a esta malla.';
+  return;
+}
     if (!datos.nombre) { this.error = 'El nombre de la carrera es obligatorio.'; return; }
     if (!datos.codigo) { this.error = 'El código de la carrera es obligatorio.'; return; }
     if (!/^[A-Z0-9]+(?:-[A-Z0-9]+)*$/.test(datos.codigo)) { this.error = 'El código de la carrera tiene un formato incorrecto.'; return; }
@@ -296,11 +637,28 @@ private prepararEdicionMalla(
   }
 
   editarCarrera(carrera: CarreraMalla): void {
-    this.carreraSeleccionada = carrera;
-    this.carreraEditandoId = carrera.id;
-    this.formularioCarrera = { nombre: carrera.nombre, codigo: carrera.codigo, cantidadNiveles: carrera.cantidadNiveles };
-    this.limpiarMensajes();
+  this.limpiarMensajes();
+
+  if (
+    !carrera.editableIdentidad
+    && !carrera.editableCantidadNiveles
+  ) {
+    this.error =
+      carrera.motivoBloqueoIdentidad
+      ?? carrera.motivoBloqueoCantidadNiveles
+      ?? 'Esta carrera ya no puede modificarse.';
+    return;
   }
+
+  this.carreraSeleccionada = carrera;
+  this.carreraEditandoId = carrera.id;
+
+  this.formularioCarrera = {
+    nombre: carrera.nombre,
+    codigo: carrera.codigo,
+    cantidadNiveles: carrera.cantidadNiveles,
+  };
+}
 
   cancelarCarrera(): void { this.carreraEditandoId = ''; this.formularioCarrera = { nombre: '', codigo: '', cantidadNiveles: 1 }; }
 
@@ -315,6 +673,12 @@ private prepararEdicionMalla(
   }
 
   eliminarCarrera(carrera: CarreraMalla): void {
+    if (!carrera.editableIdentidad) {
+  this.error =
+    carrera.motivoBloqueoIdentidad
+    ?? 'Esta carrera contiene información académica y no puede eliminarse.';
+  return;
+}
     const malla = this.mallaSeleccionada;
     if (!malla || !confirm(`¿Eliminar la carrera ${carrera.nombre} de esta malla?`)) return;
     this.service.eliminarCarreraMalla(malla.id, carrera.id).subscribe({
@@ -324,6 +688,12 @@ private prepararEdicionMalla(
   }
 
   guardarLimite(nivel: NivelMalla): void {
+    if (!nivel.editable) {
+  this.error =
+    nivel.motivoBloqueo
+    ?? 'Este nivel contiene información académica y no puede modificarse.';
+  return;
+}
     const cantidad = Number(nivel.cantidadAsignaturas);
     if (!Number.isInteger(cantidad) || cantidad < 1 || cantidad > 50) { this.error = 'La cantidad de asignaturas debe ser un entero entre 1 y 50.'; return; }
     this.service.editarNivel(nivel.id, { cantidadAsignaturas: cantidad }).subscribe({
@@ -333,50 +703,66 @@ private prepararEdicionMalla(
   }
 
   crearAsignatura(nivel: NivelMalla): void {
+    if (!nivel.editable) {
+  this.error =
+    nivel.motivoBloqueo
+    ?? 'No se pueden agregar asignaturas a este nivel.';
+  return;
+}
     const codigo = String(this.nuevoCodigoAsignatura[nivel.id] ?? '').trim().toUpperCase();
     const nombre = String(this.nuevaAsignatura[nivel.id] ?? '').trim().replace(/\s+/g, ' ').toUpperCase();
-    const docenteId = String(this.nuevoDocenteAsignatura[nivel.id] ?? '');
     if (!codigo) { this.error = 'El código de la asignatura es obligatorio.'; return; }
     if (!/^[A-Z0-9]+(?:-[A-Z0-9]+)*$/.test(codigo)) { this.error = 'El código de la asignatura solo puede contener letras, números y guiones internos.'; return; }
     if (nombre.length < 2) { this.error = 'El nombre de la asignatura debe tener al menos 2 caracteres.'; return; }
-    if (!docenteId) { this.error = 'Seleccione un docente activo para la asignatura.'; return; }
     if (nivel.asignaturas.length >= nivel.cantidadAsignaturas) { this.error = `${nivel.nombre} ya alcanzó su límite de ${nivel.cantidadAsignaturas} asignatura(s).`; return; }
-    this.service.crearAsignaturaEnNivel({ nivelId: nivel.id, codigo, nombre, docenteId }).subscribe({
+    this.service.crearAsignaturaEnNivel({ nivelId: nivel.id, codigo, nombre }).subscribe({
       next: () => {
         this.nuevaAsignatura[nivel.id] = '';
         this.nuevoCodigoAsignatura[nivel.id] = '';
-        this.nuevoDocenteAsignatura[nivel.id] = '';
-        this.mensaje = 'Asignatura creada y docente asignado correctamente.';
+        this.mensaje = 'Asignatura creada. El docente se asignará dentro de cada paralelo.';
         this.recargarSeleccion();
       },
       error: (e) => this.error = this.mensajeError(e, 'No se pudo crear la asignatura.'),
     });
   }
 
-  comenzarEdicionAsignatura(asignatura: AsignaturaMalla): void {
-    this.asignaturaEditandoId = asignatura.detalleId;
-    this.codigoAsignaturaEdicion = asignatura.codigo;
-    this.nombreAsignaturaEdicion = asignatura.nombre;
-    this.docenteAsignaturaEdicion = asignatura.docente?.estado === 'ACTIVO' ? asignatura.docente.id : '';
+  comenzarEdicionAsignatura(
+  asignatura: AsignaturaMalla,
+): void {
+  this.limpiarMensajes();
+
+  if (!asignatura.editable) {
+    this.error =
+      asignatura.motivoBloqueo
+      ?? 'Esta asignatura contiene información académica y no puede modificarse.';
+    return;
   }
+
+  this.asignaturaEditandoId =
+    asignatura.detalleId;
+
+  this.codigoAsignaturaEdicion =
+    asignatura.codigo;
+
+  this.nombreAsignaturaEdicion =
+    asignatura.nombre;
+
+}
 
   guardarAsignatura(): void {
     const codigo = this.codigoAsignaturaEdicion.trim().toUpperCase();
     const nombre = this.nombreAsignaturaEdicion.trim().replace(/\s+/g, ' ').toUpperCase();
     if (!codigo || !/^[A-Z0-9]+(?:-[A-Z0-9]+)*$/.test(codigo)) { this.error = 'Ingrese un código de asignatura válido.'; return; }
     if (!this.asignaturaEditandoId || nombre.length < 2) { this.error = 'Ingrese un nombre de asignatura válido.'; return; }
-    if (!this.docenteAsignaturaEdicion) { this.error = 'Seleccione un docente activo para la asignatura.'; return; }
     this.service.editarAsignaturaEnNivel(this.asignaturaEditandoId, {
       codigo,
       nombre,
-      docenteId: this.docenteAsignaturaEdicion,
     }).subscribe({
       next: () => {
         this.asignaturaEditandoId = '';
         this.codigoAsignaturaEdicion = '';
         this.nombreAsignaturaEdicion = '';
-        this.docenteAsignaturaEdicion = '';
-        this.mensaje = 'Asignatura y docente actualizados.';
+        this.mensaje = 'Asignatura actualizada. Las asignaciones docentes de cada paralelo se conservan.';
         this.recargarSeleccion();
       },
       error: (e) => this.error = this.mensajeError(e, 'No se pudo editar la asignatura.'),
@@ -384,6 +770,12 @@ private prepararEdicionMalla(
   }
 
   eliminarAsignatura(asignatura: AsignaturaMalla): void {
+    if (!asignatura.editable) {
+  this.error =
+    asignatura.motivoBloqueo
+    ?? 'Esta asignatura contiene información académica y no puede eliminarse.';
+  return;
+}
     if (!confirm(`¿Eliminar ${asignatura.nombre} de este nivel?`)) return;
     this.service.quitarAsignaturaDeNivel(asignatura.detalleId).subscribe({
       next: () => { this.mensaje = 'Asignatura eliminada del nivel.'; this.recargarSeleccion(); },
@@ -396,6 +788,56 @@ private prepararEdicionMalla(
     if (!this.mallaSeleccionada || !carrera) { this.error = 'Seleccione una malla y una carrera.'; return; }
     if (this.mallaSeleccionada.estado === 'BORRADOR') { this.error = 'Primero complete y active la malla antes de ofertarla en un periodo.'; return; }
     if (!this.formularioOferta.periodoId) { this.error = 'Seleccione el periodo académico de la oferta.'; return; }
+    const periodoSeleccionado =
+  this.periodos.find(
+    (periodo) =>
+      periodo.id ===
+      this.formularioOferta.periodoId,
+  );
+
+if (!periodoSeleccionado) {
+  this.error =
+    'El periodo académico seleccionado no existe.';
+  return;
+}
+
+const inicioMalla = String(
+  this.mallaSeleccionada.fechaInicio,
+).slice(0, 10);
+
+const finMalla = String(
+  this.mallaSeleccionada.fechaFin,
+).slice(0, 10);
+
+const inicioPeriodo = String(
+  periodoSeleccionado.fechaInicio,
+).slice(0, 10);
+
+const finPeriodo = String(
+  periodoSeleccionado.fechaFin,
+).slice(0, 10);
+
+if (
+  inicioPeriodo < inicioMalla ||
+  finPeriodo > finMalla
+) {
+  this.error =
+    `El periodo ${periodoSeleccionado.nombre} ` +
+    `comprende desde ${inicioPeriodo} hasta ${finPeriodo} ` +
+    `y está fuera de la vigencia de la malla, ` +
+    `que va desde ${inicioMalla} hasta ${finMalla}.`;
+
+  this.formularioOferta.periodoId = '';
+  return;
+}
+
+if (periodoSeleccionado.estado === 'CERRADO') {
+  this.error =
+    `El periodo ${periodoSeleccionado.nombre} está cerrado y no puede utilizarse para una nueva oferta.`;
+
+  this.formularioOferta.periodoId = '';
+  return;
+}
     if (!this.formularioOferta.jornada) { this.error = 'Seleccione la jornada de la oferta.'; return; }
     if (!this.formularioOferta.centroEstudioId) { this.error = 'Seleccione el centro de estudio de la oferta.'; return; }
     this.guardando = true;
@@ -448,9 +890,19 @@ private prepararEdicionMalla(
     peticion.subscribe({
       next: () => {
         this.guardando = false;
-        this.mensaje = this.paraleloEditandoId ? 'Paralelo actualizado correctamente.' : 'Paralelo creado con las asignaturas y docentes del nivel.';
-        this.cancelarEdicionParalelo();
-        this.seleccionarOferta(this.ofertaSeleccionadaId);
+        this.mensaje = this.paraleloEditandoId
+          ? 'Paralelo actualizado correctamente.'
+          : 'Paralelo creado correctamente. Los docentes pueden asignarse antes o después de matricular estudiantes.';
+        const ofertaId =
+  this.ofertaSeleccionadaId;
+
+this.cancelarEdicionParalelo();
+
+/*
+ * Vuelve a consultar las ofertas, los paralelos
+ * y actualiza la vista integral de la malla.
+ */
+this.cargarOfertas(ofertaId);
       },
       error: (e) => { this.guardando = false; this.error = this.mensajeError(e, 'No se pudo guardar el paralelo.'); },
     });
@@ -502,10 +954,27 @@ cargarAsignaturasDelParalelo(): void {
     .listarAsignaturaParalelo(paralelo.id)
     .subscribe({
       next: (
-        asignaturas: AsignaturaParaleloConfig[],
+        asignaciones: AsignaturaParaleloConfig[],
       ) => {
-        this.asignaturasDelParalelo =
-          asignaturas;
+        const nivel = this.carreraSeleccionada?.niveles.find(
+          (item) => item.id === paralelo.nivel.id,
+        );
+
+        this.asignaturasDelParalelo = (nivel?.asignaturas ?? []).map(
+          (asignatura) => {
+            const asignacion = asignaciones.find(
+              (item) => item.detalleMalla.id === asignatura.detalleId,
+            ) ?? null;
+
+            return {
+              detalleId: asignatura.detalleId,
+              codigo: asignatura.codigo,
+              nombre: asignatura.nombre,
+              asignacion,
+              docenteId: asignacion?.docente?.id ?? '',
+            };
+          },
+        );
 
         this.cargandoAsignaturasParalelo =
           false;
@@ -523,9 +992,52 @@ cargarAsignaturasDelParalelo(): void {
     });
 }
 
+asignarDocenteInicial(item: AsignaturaParaleloVista): void {
+  const paralelo = this.paraleloAsignaturasSeleccionado;
+
+  if (!paralelo || item.asignacion?.docente) {
+  return;
+}
+
+  if (!item.docenteId) {
+    this.error = `Seleccione el docente de ${item.nombre}.`;
+    return;
+  }
+
+  this.limpiarMensajes();
+  this.guardandoAsignacionDetalleId = item.detalleId;
+
+  this.service.agregarAsignaturaAParalelo({
+    paraleloId: paralelo.id,
+    detalleMallaId: item.detalleId,
+    docenteId: item.docenteId,
+  }).subscribe({
+    next: () => {
+      this.guardandoAsignacionDetalleId = '';
+      this.mensaje = `Docente asignado a ${item.nombre} únicamente en el paralelo ${paralelo.nombre}.`;
+      this.cargarAsignaturasDelParalelo();
+      const malla = this.mallaSeleccionada;
+
+if (malla && malla.estado !== 'BORRADOR') {
+  this.cargarResumenMalla(malla);
+}
+    },
+    error: (e) => {
+      this.guardandoAsignacionDetalleId = '';
+      this.error = this.mensajeError(
+        e,
+        'No se pudo asignar el docente a la asignatura del paralelo.',
+      );
+    },
+  });
+}
+
 iniciarCambioDocente(
-  asignacion: AsignaturaParaleloConfig,
+  item: AsignaturaParaleloVista,
 ): void {
+  const asignacion = item.asignacion;
+  if (!asignacion) return;
+
   this.limpiarMensajes();
 
   this.asignaturaCambioDocenteId =
@@ -547,13 +1059,13 @@ guardarCambioDocente(): void {
   const asignacion =
     this.asignaturasDelParalelo.find(
       (item) =>
-        item.id ===
+        item.asignacion?.id ===
         this.asignaturaCambioDocenteId,
-    );
+    )?.asignacion;
 
-  if (!asignacion) {
+  if (!asignacion || !asignacion.docente) {
     this.error =
-      'Seleccione la asignatura cuyo docente desea cambiar.';
+      'La asignatura todavía no tiene un docente que pueda ser reemplazado.';
     return;
   }
 
@@ -642,6 +1154,18 @@ guardarCambioDocente(): void {
         this.cancelarCambioDocente();
         this.cargarAsignaturasDelParalelo();
 
+        const mallaActual =
+  this.mallaSeleccionada;
+
+if (
+  mallaActual &&
+  mallaActual.estado !== 'BORRADOR'
+) {
+  this.cargarResumenMalla(
+    mallaActual,
+  );
+}
+
         if (
           this.historialAsignaturaId ===
           asignaturaId
@@ -665,8 +1189,11 @@ guardarCambioDocente(): void {
 }
 
 mostrarHistorialDocentes(
-  asignacion: AsignaturaParaleloConfig,
+  item: AsignaturaParaleloVista,
 ): void {
+  const asignacion = item.asignacion;
+  if (!asignacion) return;
+
   if (
     this.historialAsignaturaId ===
     asignacion.id
@@ -720,20 +1247,46 @@ cerrarAsignaturasParalelo(): void {
     null;
 
   this.asignaturasDelParalelo = [];
+  this.guardandoAsignacionDetalleId = '';
   this.historialAsignaturaId = '';
   this.historialDocentes = [];
 
   this.cancelarCambioDocente();
 }
 
-  eliminarParalelo(paralelo: ParaleloConfig): void {
-    if (!confirm(`¿Eliminar el paralelo ${paralelo.nombre}? Si ya tiene matrículas el sistema lo impedirá.`)) return;
-    this.service.eliminarParalelo(paralelo.id).subscribe({
-      next: () => { this.mensaje = 'Paralelo eliminado correctamente.'; this.seleccionarOferta(this.ofertaSeleccionadaId); },
-      error: (e) => this.error = this.mensajeError(e, 'No se pudo eliminar el paralelo.'),
-    });
+  eliminarParalelo(
+  paralelo: ParaleloConfig,
+): void {
+  const confirmado = confirm(
+    `¿Eliminar el paralelo ${paralelo.nombre}? Si ya tiene matrículas el sistema lo impedirá.`,
+  );
+
+  if (!confirmado) {
+    return;
   }
 
+  const ofertaId =
+    this.ofertaSeleccionadaId;
+
+  this.service
+    .eliminarParalelo(paralelo.id)
+    .subscribe({
+      next: () => {
+        this.mensaje =
+          'Paralelo eliminado correctamente.';
+
+        this.cerrarAsignaturasParalelo();
+        this.cargarOfertas(ofertaId);
+      },
+
+      error: (e) => {
+        this.error = this.mensajeError(
+          e,
+          'No se pudo eliminar el paralelo.',
+        );
+      },
+    });
+}
   private cargarConfiguracionOferta(): void {
     this.service.listarPeriodos().subscribe({ next: (periodos: PeriodoConfig[]) => this.periodos = periodos });
     this.service.listarCentrosEstudio().subscribe({
@@ -746,6 +1299,10 @@ cerrarAsignaturasParalelo(): void {
     this.service.listarPeriodoCarrera().subscribe({
       next: (ofertas: OfertaConfig[]) => {
         this.ofertas = ofertas;
+        const mallaActual = this.mallaSeleccionada;
+        if (mallaActual && mallaActual.estado !== 'BORRADOR') {
+          this.cargarResumenMalla(mallaActual);
+        }
         if (seleccionarId) {
           this.ofertaSeleccionadaId = seleccionarId;
           this.seleccionarOferta(seleccionarId);
@@ -760,21 +1317,47 @@ cerrarAsignaturasParalelo(): void {
     this.asignaturaEditandoId = '';
     this.codigoAsignaturaEdicion = '';
     this.nombreAsignaturaEdicion = '';
-    this.docenteAsignaturaEdicion = '';
   }
-  private validarFechaMalla(codigo: string, fechaInicio: string): string {
-    const coincidencia = codigo.match(/(?:^|-)(\d{4})-(I|II)$/);
-    if (!coincidencia) return '';
-    const anio = Number(coincidencia[1]);
-    const semestre = coincidencia[2];
-    const fecha = new Date(`${fechaInicio}T00:00:00Z`);
-    const mes = fecha.getUTCMonth() + 1;
-    if (fecha.getUTCFullYear() !== anio) return `La fecha de inicio debe pertenecer al año ${anio} indicado en el código.`;
-    if (semestre === 'I' && mes > 6) return `La malla ${anio}-I debe iniciar entre enero y junio de ${anio}.`;
-    if (semestre === 'II' && mes < 7) return `La malla ${anio}-II debe iniciar entre julio y diciembre de ${anio}.`;
+  private validarFechaMalla(
+  codigo: string,
+  fechaInicio: string,
+): string {
+  const coincidencia = codigo.match(
+    /(?:^|-)(\d{4})-(I|II)$/,
+  );
+
+  if (!coincidencia) {
     return '';
   }
-  private recargarSeleccion(): void { if (this.mallaSeleccionada) this.cargarMallas(this.mallaSeleccionada.id); }
+
+  const anioCodigo = Number(coincidencia[1]);
+  const fecha = new Date(
+    `${fechaInicio}T00:00:00Z`,
+  );
+
+  if (fecha.getUTCFullYear() !== anioCodigo) {
+    return `La fecha de inicio debe pertenecer al año ${anioCodigo} indicado en el código.`;
+  }
+
+  return '';
+}
+  private recargarSeleccion(): void {
+  const mallaId =
+    this.mallaSeleccionada?.id;
+
+  const carreraId =
+    this.carreraSeleccionada?.id;
+
+  if (!mallaId) {
+    this.cargarMallas();
+    return;
+  }
+
+  this.cargarMallas(
+    mallaId,
+    carreraId,
+  );
+}
   private limpiarMensajes(): void { this.error = ''; this.mensaje = ''; }
   private mensajeError(e: any, defecto: string): string { const m = e?.error?.message; return Array.isArray(m) ? m.join(' ') : m ?? defecto; }
 }

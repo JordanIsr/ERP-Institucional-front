@@ -40,6 +40,7 @@ export interface ParaleloOfertaInicial {
   cuposDisponibles: number;
   materiasConfiguradas: number;
   materiasRequeridas: number;
+  docentesPendientes: number;
   disponible: boolean;
   motivoNoDisponible: string | null;
 }
