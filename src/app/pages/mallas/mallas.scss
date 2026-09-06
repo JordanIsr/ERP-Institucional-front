@@ -92,6 +92,75 @@
   box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
 }
 
+.period-context-panel {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.35fr) minmax(300px, 1fr) auto;
+  align-items: center;
+  gap: 22px;
+  border-color: #bfdbfe;
+  background: linear-gradient(135deg, #ffffff, #eff6ff);
+}
+
+.period-context-copy small {
+  color: #2563eb;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.period-context-copy h2 {
+  margin: 5px 0 6px;
+  font-size: 21px;
+}
+
+.period-context-copy p {
+  margin: 0;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.period-context-select select {
+  min-height: 44px;
+  border-color: #93c5fd;
+  font-weight: 700;
+}
+
+.period-context-state {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 170px;
+  padding: 14px 16px;
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.period-context-state span {
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: #1d4ed8;
+  background: #dbeafe;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.period-context-state span[data-state='ACTIVO'] {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.period-context-state span[data-state='CERRADO'] {
+  color: #475569;
+  background: #e2e8f0;
+}
+
+.period-context-state small {
+  color: #64748b;
+}
+
 .panel-title,
 .section-heading {
   display: flex;
@@ -808,6 +877,14 @@ button:disabled {
 }
 
 @media (max-width: 900px) {
+  .period-context-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .period-context-state {
+    min-width: 0;
+  }
+
   .hero {
     align-items: flex-start;
     flex-direction: column;

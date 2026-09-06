@@ -156,6 +156,17 @@ export class PeriodosFlujo implements OnInit {
       return;
     }
 
+    const errorSolapamiento =
+      this.validarSolapamiento(
+        this.nuevoPeriodo.fechaInicio,
+        this.nuevoPeriodo.fechaFin,
+      );
+
+    if (errorSolapamiento) {
+      this.error = errorSolapamiento;
+      return;
+    }
+
     this.guardando = true;
 
     this.service
@@ -241,6 +252,18 @@ export class PeriodosFlujo implements OnInit {
 
     if (errorFechas) {
       this.error = errorFechas;
+      return;
+    }
+
+    const errorSolapamiento =
+      this.validarSolapamiento(
+        this.periodoEdit.fechaInicio,
+        this.periodoEdit.fechaFin,
+        id,
+      );
+
+    if (errorSolapamiento) {
+      this.error = errorSolapamiento;
       return;
     }
 
@@ -382,6 +405,30 @@ export class PeriodosFlujo implements OnInit {
     }
 
     return '';
+  }
+
+  private validarSolapamiento(
+    fechaInicio: string,
+    fechaFin: string,
+    excluirId?: string,
+  ): string {
+    const conflicto = this.periodos.find(
+      (periodo) =>
+        periodo.id !== excluirId &&
+        fechaInicio <= String(periodo.fechaFin).slice(0, 10) &&
+        fechaFin >= String(periodo.fechaInicio).slice(0, 10),
+    );
+
+    if (!conflicto) {
+      return '';
+    }
+
+    return (
+      `Las fechas seleccionadas se cruzan con el periodo ` +
+      `"${conflicto.nombre}", comprendido entre ` +
+      `${conflicto.fechaInicio} y ${conflicto.fechaFin}. ` +
+      `El siguiente periodo debe comenzar después de que termine el anterior.`
+    );
   }
 
   private limpiarNuevoPeriodo(): void {

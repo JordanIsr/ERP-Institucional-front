@@ -7,7 +7,42 @@
   <div class="alert error" *ngIf="error">{{ error }}</div>
   <div class="alert success" *ngIf="mensaje">{{ mensaje }}</div>
 
-  <section class="panel formulario-malla">
+  <section class="panel period-context-panel">
+    <div class="period-context-copy">
+      <small>Paso inicial obligatorio</small>
+      <h2>Seleccione el periodo académico</h2>
+      <p>Las ofertas, paralelos, cupos, docentes y estudiantes se mostrarán únicamente para el periodo elegido.</p>
+    </div>
+
+    <label class="period-context-select">
+      Periodo académico *
+      <select
+        [(ngModel)]="periodoVistaId"
+        (ngModelChange)="cambiarPeriodoVista()"
+      >
+        <option value="">Seleccione un periodo</option>
+        <option *ngFor="let periodo of periodos" [value]="periodo.id">
+          {{ periodo.nombre }} · {{ periodo.fechaInicio | date: 'dd/MM/yyyy' }} — {{ periodo.fechaFin | date: 'dd/MM/yyyy' }} · {{ periodo.estado === 'CERRADO' ? 'HISTÓRICO' : periodo.estado }}
+        </option>
+      </select>
+    </label>
+
+    <div class="period-context-state" *ngIf="periodoVistaSeleccionado as periodo">
+      <span [attr.data-state]="periodo.estado">
+        {{ periodo.estado === 'CERRADO' ? 'HISTÓRICO' : periodo.estado }}
+      </span>
+      <strong>{{ periodo.nombre }}</strong>
+      <small>{{ periodo.fechaInicio | date: 'dd/MM/yyyy' }} — {{ periodo.fechaFin | date: 'dd/MM/yyyy' }}</small>
+    </div>
+  </section>
+
+  <div class="search-placeholder" *ngIf="!periodoVistaId">
+    <span>📅</span>
+    <strong>Seleccione un periodo para continuar</strong>
+    <p>La información de otros periodos permanecerá oculta y protegida.</p>
+  </div>
+
+  <section class="panel formulario-malla" *ngIf="periodoVistaId && !periodoVistaEsHistorico">
     <div class="panel-title"><div><small>Paso 1</small><h2>{{ editandoMalla ? 'Editar malla' : 'Crear malla general' }}</h2></div><button class="ghost" *ngIf="editandoMalla" (click)="cancelarMalla()">Cancelar edición</button></div>
     <div class="form-grid malla-fields">
       <label>Código de la malla *<input maxlength="30" [(ngModel)]="formularioMalla.codigo" (ngModelChange)="formularioMalla.codigo = $event.toUpperCase()" placeholder="Ej. 2027-I o MALLA-2027-I"></label>
@@ -18,7 +53,7 @@
     <button class="primary" (click)="guardarMalla()" [disabled]="guardando">{{ guardando ? 'Guardando...' : (editandoMalla ? 'Guardar cambios' : 'Crear malla') }}</button>
   </section>
 
-  <section class="panel listado-mallas">
+  <section class="panel listado-mallas" *ngIf="periodoVistaId">
     <div class="panel-title"><div><small>Consulta de mallas</small><h2>Buscar por estado</h2><p>Seleccione primero el estado de la malla que desea consultar.</p></div><span class="counter">{{ mallasFiltradas.length }}</span></div>
     <div class="malla-search-panel">
       <div class="state-selector" role="group" aria-label="Filtrar mallas por estado">
@@ -52,9 +87,11 @@
         <div class="card-actions">
   <button
     (click)="$event.stopPropagation(); editarMalla(malla)"
-    [disabled]="!malla.editableDatosGenerales"
+    [disabled]="periodoVistaEsHistorico || !malla.editableDatosGenerales"
     [title]="
-      malla.motivoBloqueoDatosGenerales
+      (periodoVistaEsHistorico
+        ? 'El periodo histórico permanece en modo consulta.'
+        : malla.motivoBloqueoDatosGenerales)
       || 'Editar datos generales'
     "
   >
@@ -64,9 +101,11 @@
   <button
     class="danger"
     (click)="$event.stopPropagation(); eliminarMalla(malla)"
-    [disabled]="!malla.editableDatosGenerales"
+    [disabled]="periodoVistaEsHistorico || !malla.editableDatosGenerales"
     [title]="
-      malla.motivoBloqueoDatosGenerales
+      (periodoVistaEsHistorico
+        ? 'El periodo histórico permanece en modo consulta.'
+        : malla.motivoBloqueoDatosGenerales)
       || 'Eliminar malla'
     "
   >
@@ -85,14 +124,14 @@
           <div class="portfolio-title-row"><h2>{{ malla.codigo }}</h2><span class="portfolio-state" [attr.data-state]="malla.estado">{{ malla.estado }}</span></div>
           <p>Vigencia del {{ malla.fechaInicio | date: 'dd/MM/yyyy' }} al {{ malla.fechaFin | date: 'dd/MM/yyyy' }} · {{ malla.duracionAnios }} año(s)</p>
         </div>
-        <button class="portfolio-manage" *ngIf="malla.estado === 'ACTIVA' && malla.permiteAgregarEstructura" (click)="alternarGestionActiva()">{{ modoGestionActiva ? 'Cerrar administración' : 'Administrar estructura' }}</button>
+        <button class="portfolio-manage" *ngIf="!periodoVistaEsHistorico && malla.estado === 'ACTIVA' && malla.permiteAgregarEstructura" (click)="alternarGestionActiva()">{{ modoGestionActiva ? 'Cerrar administración' : 'Administrar estructura' }}</button>
       </header>
 
       <div class="portfolio-stats">
         <div><span>Carreras</span><strong>{{ totalCarrerasResumen }}</strong></div>
         <div><span>Niveles</span><strong>{{ totalNivelesResumen }}</strong></div>
         <div><span>Asignaturas</span><strong>{{ totalAsignaturasResumen }}</strong></div>
-        <div><span>Estado</span><strong>{{ malla.estado === 'ACTIVA' ? 'Vigente' : 'Solo consulta' }}</strong></div>
+        <div><span>Periodo consultado</span><strong>{{ periodoVistaSeleccionado?.nombre }}</strong></div>
       </div>
 
       <p class="empty portfolio-loading" *ngIf="cargandoResumenMalla">Cargando períodos, paralelos y cupos de la malla...</p>
@@ -114,7 +153,7 @@
 
               <div class="level-openings">
                 <ng-container *ngIf="aperturasDeNivel(nivel.id) as aperturas">
-                  <p class="no-opening" *ngIf="aperturas.length === 0">Sin apertura académica registrada</p>
+                  <p class="no-opening" *ngIf="aperturas.length === 0">Sin oferta ni paralelo registrado en {{ periodoVistaSeleccionado?.nombre }}</p>
                   <div class="opening-card" *ngFor="let apertura of aperturas">
                     <div class="opening-period"><strong>{{ apertura.periodoNombre }}</strong><span>{{ apertura.periodoFechaInicio | date: 'dd/MM/yyyy' }} — {{ apertura.periodoFechaFin | date: 'dd/MM/yyyy' }}</span></div>
                     <div class="opening-tags"><span>{{ apertura.jornada }}</span><span>{{ apertura.centroNombre }}</span><span>Paralelo {{ apertura.paraleloNombre }}</span></div>
@@ -138,7 +177,7 @@
       </div>
     </section>
 
-    <ng-container *ngIf="malla.estado === 'BORRADOR' || (malla.estado === 'ACTIVA' && modoGestionActiva)">
+    <ng-container *ngIf="!periodoVistaEsHistorico && (malla.estado === 'BORRADOR' || (malla.estado === 'ACTIVA' && modoGestionActiva))">
     <section class="panel carreras-panel">
       <div class="panel-title"><div><small>{{ malla.estado === 'BORRADOR' ? 'Paso 2' : 'Administración' }} · {{ malla.codigo }}</small><h2>Carreras de la malla</h2><p>La cantidad indicada crea automáticamente los niveles de la carrera.</p></div><button class="activate" *ngIf="malla.estado === 'BORRADOR'" (click)="activarMalla()">Activar malla completa</button></div>
       <div class="form-grid carrera-fields" *ngIf="malla.permiteAgregarEstructura">
@@ -200,11 +239,8 @@
 
   <select
     [(ngModel)]="formularioOferta.periodoId"
+    disabled
   >
-    <option value="">
-      Seleccione un periodo dentro de la vigencia
-    </option>
-
     <option
       *ngFor="
         let periodo of periodosDisponibles
@@ -217,6 +253,7 @@
       {{ periodo.fechaFin | date: 'dd/MM/yyyy' }}
     </option>
   </select>
+  <small>Se utiliza el periodo seleccionado en la parte superior.</small>
   <small
   class="field-warning"
   *ngIf="

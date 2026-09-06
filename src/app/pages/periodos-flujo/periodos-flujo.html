@@ -123,7 +123,7 @@
           class="badge-estado"
           [ngClass]="periodo.estado?.toLowerCase()"
         >
-          {{ periodo.estado }}
+          {{ periodo.estado === 'CERRADO' ? 'HISTÓRICO' : periodo.estado }}
         </span>
 
         <div class="tarjeta-acciones">
@@ -131,6 +131,7 @@
             class="btn-icono"
             type="button"
             title="Editar periodo"
+            [disabled]="periodo.estado === 'CERRADO'"
             (click)="activarEdicionPeriodo(periodo)"
           >
             ✏️
@@ -140,6 +141,7 @@
             class="btn-icono btn-eliminar"
             type="button"
             title="Eliminar periodo"
+            [disabled]="periodo.estado === 'CERRADO'"
             (click)="eliminarPeriodo(periodo)"
           >
             🗑️
@@ -168,8 +170,8 @@
               [(ngModel)]="tipoEdicion"
               (ngModelChange)="actualizarPeriodoEditado()"
             >
-              <option value="I">I · Marzo a agosto</option>
-              <option value="II">II · Septiembre a febrero</option>
+              <option value="I">I</option>
+              <option value="II">II</option>
             </select>
           </div>
 
@@ -207,7 +209,7 @@
             <select [(ngModel)]="periodoEdit.estado">
               <option value="PLANIFICADO">PLANIFICADO</option>
               <option value="ACTIVO">ACTIVO</option>
-              <option value="CERRADO">CERRADO</option>
+              <option value="CERRADO">HISTÓRICO</option>
             </select>
           </div>
 

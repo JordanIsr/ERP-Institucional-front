@@ -73,10 +73,16 @@ export class SolicitudesMatriculas implements OnInit {
       .obtenerMisSolicitudes()
       .subscribe({
         next: (solicitudes) => {
-          this.solicitudActual =
-            solicitudes.length > 0
-              ? solicitudes[0]
-              : null;
+          /*
+           * Una solicitud APROBADA de un periodo anterior pertenece
+           * al historial y no debe bloquear la solicitud del siguiente.
+           */
+          this.solicitudActual = solicitudes.find(
+            (solicitud) =>
+              solicitud.estado === 'PENDIENTE' ||
+              (solicitud.estado === 'RECHAZADA' &&
+                solicitud.puedeReenviar),
+          ) ?? null;
 
           this.cargarOpciones();
         },

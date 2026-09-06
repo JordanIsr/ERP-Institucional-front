@@ -107,7 +107,10 @@ interface HistorialDocenteConfig {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './mallas.html',
-  styleUrl: './mallas.scss',
+  styleUrls: [
+    './mallas.scss',
+    './mallas-portfolio.scss',
+  ],
 })
 export class Mallas implements OnInit {
   private readonly service = inject(EstructuraAcademicaService);
@@ -134,6 +137,7 @@ export class Mallas implements OnInit {
   nivelFiltro = 'TODOS';
   busquedaAsignatura = '';
   periodos: PeriodoConfig[] = [];
+  periodoVistaId = '';
   centros: CentroConfig[] = [];
   ofertas: OfertaConfig[] = [];
   ofertaSeleccionadaId = '';
@@ -170,15 +174,30 @@ guardandoCambioDocente = false;
   }
 
   get mallasFiltradas(): MallaGeneral[] {
-    if (!this.filtroEstadoMalla) return [];
+    if (!this.periodoVistaId || !this.filtroEstadoMalla) return [];
 
     const texto = this.busquedaMalla.trim().toUpperCase();
+    const periodo = this.periodoVistaSeleccionado;
 
     return this.mallas.filter((malla) => {
       const coincideEstado = malla.estado === this.filtroEstadoMalla;
       const coincideTexto = !texto || malla.codigo.toUpperCase().includes(texto);
-      return coincideEstado && coincideTexto;
+      const coincideVigencia = !!periodo
+        && periodo.fechaInicio >= malla.fechaInicio
+        && periodo.fechaFin <= malla.fechaFin;
+
+      return coincideEstado && coincideTexto && coincideVigencia;
     });
+  }
+
+  get periodoVistaSeleccionado(): PeriodoConfig | undefined {
+    return this.periodos.find(
+      (periodo) => periodo.id === this.periodoVistaId,
+    );
+  }
+
+  get periodoVistaEsHistorico(): boolean {
+    return this.periodoVistaSeleccionado?.estado === 'CERRADO';
   }
 
   get totalCarrerasResumen(): number {
@@ -251,6 +270,7 @@ guardandoCambioDocente = false;
       finPeriodo <= finMalla;
 
     return (
+      periodo.id === this.periodoVistaId &&
       estadoPermitido &&
       iniciaDentroDeLaMalla &&
       finalizaDentroDeLaMalla
@@ -259,8 +279,13 @@ guardandoCambioDocente = false;
 }
 
   get ofertasDeCarrera(): OfertaConfig[] {
-    if (!this.carreraSeleccionada) return [];
-    return this.ofertas.filter((oferta) => oferta.carrera.id === this.carreraSeleccionada?.id);
+    if (!this.carreraSeleccionada || !this.periodoVistaId) return [];
+
+    return this.ofertas.filter(
+      (oferta) =>
+        oferta.carrera.id === this.carreraSeleccionada?.id
+        && oferta.periodo.id === this.periodoVistaId,
+    );
   }
 
   private cargarDocentesActivos(): void {
@@ -356,6 +381,27 @@ guardandoCambioDocente = false;
     }
   }
 
+  cambiarPeriodoVista(): void {
+    this.filtroEstadoMalla = '';
+    this.busquedaMalla = '';
+    this.mallaSeleccionada = null;
+    this.carreraSeleccionada = null;
+    this.modoGestionActiva = false;
+    this.aperturasPorNivel = {};
+    this.ofertaSeleccionadaId = '';
+    this.paralelosConfigurados = [];
+    this.cerrarAsignaturasParalelo();
+    this.cancelarMalla();
+    this.cancelarCarrera();
+    this.limpiarMensajes();
+
+    this.formularioOferta = {
+      periodoId: this.periodoVistaId,
+      jornada: '',
+      centroEstudioId: '',
+    };
+  }
+
   cambiarFiltroEstado(estado: string): void {
     this.filtroEstadoMalla = estado;
     this.busquedaMalla = '';
@@ -400,7 +446,9 @@ guardandoCambioDocente = false;
     );
 
     const ofertasMalla = this.ofertas.filter(
-      (oferta) => versiones.has(oferta.versionMalla?.id),
+      (oferta) =>
+        versiones.has(oferta.versionMalla?.id)
+        && oferta.periodo.id === this.periodoVistaId,
     );
 
     if (ofertasMalla.length === 0) {
@@ -786,6 +834,9 @@ private prepararEdicionMalla(
   crearOferta(): void {
     const carrera = this.carreraSeleccionada;
     if (!this.mallaSeleccionada || !carrera) { this.error = 'Seleccione una malla y una carrera.'; return; }
+    if (!this.periodoVistaId) { this.error = 'Seleccione primero el periodo académico que desea administrar.'; return; }
+    if (this.periodoVistaEsHistorico) { this.error = 'El periodo seleccionado está cerrado y permanece únicamente como historial.'; return; }
+    this.formularioOferta.periodoId = this.periodoVistaId;
     if (this.mallaSeleccionada.estado === 'BORRADOR') { this.error = 'Primero complete y active la malla antes de ofertarla en un periodo.'; return; }
     if (!this.formularioOferta.periodoId) { this.error = 'Seleccione el periodo académico de la oferta.'; return; }
     const periodoSeleccionado =
