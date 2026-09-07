@@ -155,9 +155,20 @@ export class RegistarNotas implements OnInit {
   }
 
   requiereRecuperacion(detalle: DetalleCalificacion): boolean {
-    if (detalle.notaParcial1 === null || detalle.notaParcial2 === null) return false;
-    return (Number(detalle.notaParcial1) + Number(detalle.notaParcial2)) / 2 < 7;
+  if (
+    detalle.notaParcial1 === null ||
+    detalle.notaParcial2 === null
+  ) {
+    return false;
   }
+
+  const promedio =
+    (Number(detalle.notaParcial1) +
+      Number(detalle.notaParcial2)) /
+    2;
+
+  return promedio >= 3 && promedio < 7;
+}
 
   etiquetaNota(tipo: TipoNota): string {
     return ({
